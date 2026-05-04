@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}Payment - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% url 'booking_detail' booking.id %}" class="btn btn-sm btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <h4 class="fw-bold mb-0"><i class="fas fa-credit-card me-2 text-success"></i>Payment</h4>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-4">Order Summary</h5>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Booking ID</span>
+                        <strong>#{{ booking.id }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">From</span>
+                        <span>{{ booking.pickup_location|truncatechars:30 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">To</span>
+                        <span>{{ booking.drop_location|truncatechars:30 }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Vehicle</span>
+                        <span>{{ booking.get_vehicle_type_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Distance</span>
+                        <span>{{ booking.distance_km }} km</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong class="fs-5">Total Amount</strong>
+                        <strong class="fs-4 text-gradient">₹{{ booking.estimated_price }}</strong>
+                    </div>
+                </div>
+                
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4">Select Payment Method</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-6">
+                                <label class="payment-option d-block p-3 rounded-3 border-2 border text-center" style="cursor:pointer; transition: all 0.3s;">
+                                    <input type="radio" name="payment_method" value="cash" class="d-none" checked>
+                                    <i class="fas fa-money-bill-wave fs-2 text-success mb-2 d-block"></i>
+                                    <strong>Cash on Delivery</strong>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="payment-option d-block p-3 rounded-3 border-2 border text-center" style="cursor:pointer; transition: all 0.3s;">
+                                    <input type="radio" name="payment_method" value="upi" class="d-none">
+                                    <i class="fas fa-mobile-alt fs-2 text-primary mb-2 d-block"></i>
+                                    <strong>UPI</strong>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="payment-option d-block p-3 rounded-3 border-2 border text-center" style="cursor:pointer; transition: all 0.3s;">
+                                    <input type="radio" name="payment_method" value="card" class="d-none">
+                                    <i class="fas fa-credit-card fs-2 text-warning mb-2 d-block"></i>
+                                    <strong>Card</strong>
+                                </label>
+                            </div>
+                            <div class="col-6">
+                                <label class="payment-option d-block p-3 rounded-3 border-2 border text-center" style="cursor:pointer; transition: all 0.3s;">
+                                    <input type="radio" name="payment_method" value="netbanking" class="d-none">
+                                    <i class="fas fa-university fs-2 text-info mb-2 d-block"></i>
+                                    <strong>Net Banking</strong>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info rounded-3">
+                            <i class="fas fa-lock me-2"></i>
+                            Your payment is secured with 256-bit SSL encryption.
+                        </div>
+                        
+                        <button type="submit" class="btn btn-gradient btn-lg w-100">
+                            <i class="fas fa-check-circle me-2"></i>Pay ₹{{ booking.estimated_price }}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-option:has(input:checked) {
+    border-color: #6366f1 !important;
+    background: linear-gradient(135deg, rgba(102,126,234,0.1) 0%, rgba(118,75,162,0.1) 100%);
+}
+.payment-option:hover {
+    border-color: #6366f1 !important;
+}
+</style>
+
+<script>
+document.querySelectorAll('.payment-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+        document.querySelectorAll('.payment-option').forEach(o => o.style.borderColor = '');
+        opt.style.borderColor = '#6366f1';
+    });
+});
+</script>
+{% endblock %}

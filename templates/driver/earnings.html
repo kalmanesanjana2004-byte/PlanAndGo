@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+{% block title %}Earnings - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/driver_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="fw-bold mb-0"><i class="fas fa-rupee-sign me-2 text-success"></i>Earnings</h4>
+        </div>
+        
+        <!-- Summary Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-icon success"><i class="fas fa-rupee-sign"></i></div>
+                    <div class="stat-value">₹{{ driver.total_earnings|floatformat:0 }}</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">{{ driver.total_trips }}</div>
+                    <div class="stat-label">Total Trips</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
+                    <div class="stat-icon warning"><i class="fas fa-star"></i></div>
+                    <div class="stat-value">{{ driver.rating }}/5</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Earnings Chart -->
+        <div class="glass-card mb-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-chart-bar me-2 text-primary"></i>Monthly Earnings</h5>
+            <canvas id="earningsChart" height="100"></canvas>
+        </div>
+        
+        <!-- Recent Completed Jobs -->
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-history me-2 text-primary"></i>Completed Jobs</h5>
+            {% if completed_jobs %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#ID</th>
+                            <th>Route</th>
+                            <th>Delivery Date</th>
+                            <th>Earnings</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in completed_jobs %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ job.id }}</strong></td>
+                            <td>
+                                <small>{{ job.pickup_location|truncatechars:20 }} → {{ job.drop_location|truncatechars:20 }}</small>
+                            </td>
+                            <td><small>{{ job.delivery_date }}</small></td>
+                            <td><strong class="text-success">₹{{ job.estimated_price }}</strong></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <p class="text-muted">No completed jobs yet.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+const monthlyData = {{ monthly_data|safe }};
+const labels = Object.keys(monthlyData);
+const values = Object.values(monthlyData);
+
+const ctx = document.getElementById('earningsChart').getContext('2d');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: labels.length ? labels : ['No Data'],
+        datasets: [{
+            label: 'Earnings (₹)',
+            data: values.length ? values : [0],
+            backgroundColor: 'rgba(99, 102, 241, 0.7)',
+            borderColor: '#6366f1',
+            borderWidth: 2,
+            borderRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: {
+                    callback: val => '₹' + val.toLocaleString()
+                }
+            }
+        }
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

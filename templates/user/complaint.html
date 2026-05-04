@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Submit Complaint - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="fw-bold mb-0"><i class="fas fa-exclamation-circle me-2 text-danger"></i>Submit Complaint</h4>
+        </div>
+        
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <div class="glass-card">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Related Booking (Optional)</label>
+                            {{ form.booking }}
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Subject *</label>
+                            {{ form.subject }}
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label">Description *</label>
+                            {{ form.description }}
+                        </div>
+                        <button type="submit" class="btn btn-gradient px-5">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Complaint
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

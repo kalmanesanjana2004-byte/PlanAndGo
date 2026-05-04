@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Payments - PackAndGo Admin{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/admin_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0"><i class="fas fa-credit-card me-2 text-success"></i>Payments</h4>
+            </div>
+            <div class="stat-card d-inline-flex align-items-center gap-3 py-2 px-4" style="border-left-color: #10b981;">
+                <i class="fas fa-rupee-sign text-success fs-4"></i>
+                <div>
+                    <div class="fw-bold fs-5">₹{{ total_revenue|floatformat:0 }}</div>
+                    <small class="text-muted">Total Revenue</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="glass-card">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#</th>
+                            <th>Booking</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Transaction ID</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td class="px-3">{{ payment.id }}</td>
+                            <td><strong>#{{ payment.booking.id }}</strong></td>
+                            <td>{{ payment.booking.user.get_full_name|default:payment.booking.user.username }}</td>
+                            <td><strong class="text-success">₹{{ payment.amount }}</strong></td>
+                            <td>{{ payment.get_payment_method_display }}</td>
+                            <td><small class="text-muted">{{ payment.transaction_id|default:"—" }}</small></td>
+                            <td><small>{{ payment.paid_at|date:"d M Y"|default:"—" }}</small></td>
+                            <td>
+                                {% if payment.payment_status == 'completed' %}
+                                <span class="badge bg-success">Completed</span>
+                                {% elif payment.payment_status == 'pending' %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% elif payment.payment_status == 'failed' %}
+                                <span class="badge bg-danger">Failed</span>
+                                {% else %}
+                                <span class="badge bg-info">Refunded</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="8" class="text-center py-4 text-muted">No payments found</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if payments.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if payments.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ payments.previous_page_number }}"><i class="fas fa-chevron-left"></i></a></li>
+                    {% endif %}
+                    {% for num in payments.paginator.page_range %}
+                    <li class="page-item {% if payments.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if payments.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ payments.next_page_number }}"><i class="fas fa-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}Services - PackAndGo{% endblock %}
+{% block content %}
+
+<section class="py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 40vh; display:flex; align-items:center;">
+    <div class="container text-center text-white">
+        <h1 class="fw-bold display-4">Our <span style="color:#fbbf24;">Services</span></h1>
+        <p class="fs-5 mt-3" style="opacity:0.9;">Professional transportation for every need</p>
+    </div>
+</section>
+
+<section class="py-5" style="background:white;">
+    <div class="container">
+        <div class="row g-4">
+            {% for v in vehicle_list %}
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">{{ v.icon }}</div>
+                    <h4 class="fw-bold">{{ v.name }}</h4>
+                    <p class="text-muted">{{ v.desc }}</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        {% for feature in v.features %}
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>{{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹{{ v.price }}</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book This Vehicle</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Static vehicle cards -->
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">🏍️</div>
+                    <h4 class="fw-bold">Bike Delivery</h4>
+                    <p class="text-muted">Fast and efficient delivery for small packages within the city.</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Up to 10 kg capacity</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Same-day delivery</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>City-wide coverage</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Real-time tracking</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹50</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">🚐</div>
+                    <h4 class="fw-bold">Mini Truck</h4>
+                    <p class="text-muted">Perfect for small household shifting and appliance transport.</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Up to 500 kg capacity</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Household items</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Office equipment</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Intercity available</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹200</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">🚛</div>
+                    <h4 class="fw-bold">Pickup Van</h4>
+                    <p class="text-muted">Ideal for medium-sized moves and bulk goods transport.</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Up to 1000 kg capacity</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Furniture transport</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Commercial goods</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Loading assistance</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹300</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">🚚</div>
+                    <h4 class="fw-bold">Tempo</h4>
+                    <p class="text-muted">Full home shifting and large furniture transport made easy.</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Up to 2000 kg capacity</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Full home shifting</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Packing assistance</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Long-distance moves</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹400</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="glass-card h-100 text-center">
+                    <div style="font-size:4rem; margin-bottom:1rem;">🏗️</div>
+                    <h4 class="fw-bold">Large Truck</h4>
+                    <p class="text-muted">Heavy industrial goods and full office relocation.</p>
+                    <ul class="list-unstyled text-start mt-3">
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>5000+ kg capacity</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Industrial goods</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Office relocation</li>
+                        <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i>Pan-India delivery</li>
+                    </ul>
+                    <div class="mt-auto pt-3">
+                        <div class="text-gradient fw-bold fs-4 mb-3">Starting ₹600</div>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient w-100">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}

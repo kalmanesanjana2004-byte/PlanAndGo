@@ -1,0 +1,253 @@
+{% extends 'base.html' %}
+{% block title %}Booking #{{ booking.id }} - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <a href="{% url 'booking_history' %}" class="btn btn-sm btn-outline-secondary me-3">
+                <i class="fas fa-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">Booking #{{ booking.id }}</h4>
+                <small class="text-muted">Created {{ booking.created_at|date:"d M Y, H:i" }}</small>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Status Tracker -->
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-map-marked-alt me-2 text-primary"></i>Shipment Tracking</h5>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-semibold">Progress</span>
+                            <span class="text-gradient fw-bold">{{ booking.status_percentage }}%</span>
+                        </div>
+                        <div class="progress-custom">
+                            <div class="progress-bar-custom" style="width: {{ booking.status_percentage }}%;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline -->
+                    <div class="timeline">
+                        <div class="timeline-item {% if booking.status != 'cancelled' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Booking Placed</h6>
+                            <small class="text-muted">{{ booking.created_at|date:"d M Y, H:i" }}</small>
+                        </div>
+                        <div class="timeline-item {% if booking.status in 'confirmed,picked_up,in_transit,delivered' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Confirmed</h6>
+                            <small class="text-muted">
+                                {% if booking.driver %}Driver: {{ booking.driver.driver_name }}{% else %}Awaiting driver assignment{% endif %}
+                            </small>
+                        </div>
+                        <div class="timeline-item {% if booking.status in 'picked_up,in_transit,delivered' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Picked Up</h6>
+                            <small class="text-muted">Items collected from {{ booking.pickup_location }}</small>
+                        </div>
+                        <div class="timeline-item {% if booking.status in 'in_transit,delivered' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">In Transit</h6>
+                            <small class="text-muted">On the way to {{ booking.drop_location }}</small>
+                        </div>
+                        <div class="timeline-item {% if booking.status == 'delivered' %}active{% endif %}">
+                            <h6 class="fw-bold mb-1">Delivered</h6>
+                            <small class="text-muted">
+                                {% if booking.delivery_date %}{{ booking.delivery_date }}{% else %}Estimated: {{ booking.booking_date }}{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Booking Details -->
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-info-circle me-2 text-primary"></i>Booking Details</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="text-muted small">Pickup Location</label>
+                            <p class="fw-semibold mb-0"><i class="fas fa-map-marker-alt text-success me-2"></i>{{ booking.pickup_location }}</p>
+                            {% if booking.pickup_city %}<small class="text-muted ms-4">{{ booking.pickup_city }}</small>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Drop Location</label>
+                            <p class="fw-semibold mb-0"><i class="fas fa-map-marker-alt text-danger me-2"></i>{{ booking.drop_location }}</p>
+                            {% if booking.drop_city %}<small class="text-muted ms-4">{{ booking.drop_city }}</small>{% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Vehicle Type</label>
+                            <p class="fw-semibold mb-0"><i class="fas fa-truck text-primary me-2"></i>{{ booking.get_vehicle_type_display }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Distance</label>
+                            <p class="fw-semibold mb-0"><i class="fas fa-route text-info me-2"></i>{{ booking.distance_km }} km</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Booking Date</label>
+                            <p class="fw-semibold mb-0"><i class="fas fa-calendar text-warning me-2"></i>{{ booking.booking_date }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="text-muted small">Status</label>
+                            <p class="mb-0">
+                                <span class="badge badge-{{ booking.status }} badge-custom">{{ booking.get_status_display }}</span>
+                            </p>
+                        </div>
+                        <div class="col-12">
+                            <label class="text-muted small">Item Description</label>
+                            <p class="fw-semibold mb-0">{{ booking.item_description }}</p>
+                        </div>
+                        {% if booking.special_instructions %}
+                        <div class="col-12">
+                            <label class="text-muted small">Special Instructions</label>
+                            <p class="fw-semibold mb-0">{{ booking.special_instructions }}</p>
+                        </div>
+                        {% endif %}
+                        {% if booking.item_image %}
+                        <div class="col-12">
+                            <label class="text-muted small">Item Photo</label>
+                            <br>
+                            <img src="{{ booking.item_image.url }}" class="rounded-3 mt-2" style="max-height:200px; object-fit:cover;">
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Review Section -->
+                {% if booking.status == 'delivered' %}
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-star me-2 text-warning"></i>Rate Your Experience</h5>
+                    {% if review %}
+                    <div class="text-center py-3">
+                        <div class="mb-2">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <i class="fas fa-star text-warning fs-4"></i>
+                                {% else %}
+                                    <i class="far fa-star text-warning fs-4"></i>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        <p class="text-muted">{{ review.comment }}</p>
+                        <small class="text-muted">Reviewed on {{ review.created_at|date:"d M Y" }}</small>
+                    </div>
+                    {% else %}
+                    <form method="post" action="{% url 'submit_review' booking.id %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label class="form-label">Rating</label>
+                            <div class="d-flex gap-2">
+                                {% for i in "12345" %}
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="rating" value="{{ forloop.counter }}" id="star{{ forloop.counter }}" required>
+                                    <label class="form-check-label" for="star{{ forloop.counter }}">
+                                        <i class="fas fa-star text-warning fs-4"></i>
+                                    </label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Comment</label>
+                            <textarea name="comment" class="form-control" rows="3" placeholder="Share your experience..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-gradient">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Review
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Payment Card -->
+                <div class="glass-card mb-4">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-credit-card me-2 text-success"></i>Payment</h5>
+                    <div class="text-center mb-3">
+                        <div class="display-6 fw-bold text-gradient">₹{{ booking.estimated_price }}</div>
+                        <small class="text-muted">Estimated Total</small>
+                    </div>
+                    {% if payment %}
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Method</span>
+                            <span class="fw-semibold">{{ payment.get_payment_method_display }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Status</span>
+                            <span class="badge {% if payment.payment_status == 'completed' %}bg-success{% else %}bg-warning{% endif %}">
+                                {{ payment.get_payment_status_display }}
+                            </span>
+                        </div>
+                        {% if payment.transaction_id %}
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted">Transaction ID</span>
+                            <span class="fw-semibold small">{{ payment.transaction_id }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if payment.payment_status != 'completed' %}
+                    <a href="{% url 'payment_page' booking.id %}" class="btn btn-gradient w-100">
+                        <i class="fas fa-credit-card me-2"></i>Pay Now
+                    </a>
+                    {% endif %}
+                    {% else %}
+                    <a href="{% url 'payment_page' booking.id %}" class="btn btn-gradient w-100">
+                        <i class="fas fa-credit-card me-2"></i>Pay Now
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Driver Card -->
+                {% if booking.driver %}
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-user-tie me-2 text-primary"></i>Your Driver</h5>
+                    <div class="d-flex align-items-center mb-3">
+                        {% if booking.driver.profile_image %}
+                        <img src="{{ booking.driver.profile_image.url }}" class="rounded-circle me-3" width="60" height="60" style="object-fit:cover;">
+                        {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:60px;height:60px;background:linear-gradient(135deg,#667eea,#764ba2);">
+                            <span class="text-white fw-bold fs-4">{{ booking.driver.driver_name|first|upper }}</span>
+                        </div>
+                        {% endif %}
+                        <div>
+                            <h6 class="fw-bold mb-0">{{ booking.driver.driver_name }}</h6>
+                            <div>
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= booking.driver.rating %}
+                                        <i class="fas fa-star text-warning small"></i>
+                                    {% else %}
+                                        <i class="far fa-star text-warning small"></i>
+                                    {% endif %}
+                                {% endfor %}
+                                <small class="text-muted ms-1">{{ booking.driver.rating }}</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <i class="fas fa-phone text-success me-2"></i>
+                        <span>{{ booking.driver.phone }}</span>
+                    </div>
+                    <div class="mb-2">
+                        <i class="fas fa-truck text-primary me-2"></i>
+                        <span>{{ booking.driver.get_vehicle_type_display }}</span>
+                    </div>
+                    <div>
+                        <i class="fas fa-id-card text-info me-2"></i>
+                        <span>{{ booking.driver.vehicle_number }}</span>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

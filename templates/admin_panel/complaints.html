@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Complaints - PackAndGo Admin{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/admin_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h4 class="fw-bold mb-0"><i class="fas fa-exclamation-triangle me-2 text-danger"></i>Complaints</h4>
+        </div>
+        
+        <!-- Filter -->
+        <div class="glass-card mb-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+                        <option value="in_review" {% if status_filter == 'in_review' %}selected{% endif %}>In Review</option>
+                        <option value="resolved" {% if status_filter == 'resolved' %}selected{% endif %}>Resolved</option>
+                        <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-gradient w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="glass-card">
+            {% for complaint in complaints %}
+            <div class="p-4 rounded-3 mb-3" style="background: #f8fafc; border-left: 4px solid {% if complaint.status == 'open' %}#ef4444{% elif complaint.status == 'in_review' %}#f59e0b{% elif complaint.status == 'resolved' %}#10b981{% else %}#94a3b8{% endif %};">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <h6 class="fw-bold mb-1">{{ complaint.subject }}</h6>
+                        <small class="text-muted">
+                            By {{ complaint.user.get_full_name|default:complaint.user.username }} 
+                            {% if complaint.booking %}| Booking #{{ complaint.booking.id }}{% endif %}
+                            | {{ complaint.created_at|date:"d M Y" }}
+                        </small>
+                    </div>
+                    <span class="badge {% if complaint.status == 'open' %}bg-danger{% elif complaint.status == 'in_review' %}bg-warning{% elif complaint.status == 'resolved' %}bg-success{% else %}bg-secondary{% endif %}">
+                        {{ complaint.get_status_display }}
+                    </span>
+                </div>
+                <p class="text-muted mb-3">{{ complaint.description }}</p>
+                
+                {% if complaint.admin_response %}
+                <div class="alert alert-success rounded-3 mb-3">
+                    <strong><i class="fas fa-reply me-2"></i>Admin Response:</strong> {{ complaint.admin_response }}
+                </div>
+                {% endif %}
+                
+                <!-- Response Form -->
+                <form method="post" class="row g-2">
+                    {% csrf_token %}
+                    <input type="hidden" name="complaint_id" value="{{ complaint.id }}">
+                    <div class="col-md-6">
+                        <textarea name="admin_response" class="form-control form-control-sm" rows="2" placeholder="Write response...">{{ complaint.admin_response }}</textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select form-select-sm">
+                            <option value="in_review" {% if complaint.status == 'in_review' %}selected{% endif %}>In Review</option>
+                            <option value="resolved" {% if complaint.status == 'resolved' %}selected{% endif %}>Resolved</option>
+                            <option value="closed" {% if complaint.status == 'closed' %}selected{% endif %}>Closed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-gradient btn-sm w-100">
+                            <i class="fas fa-paper-plane me-1"></i>Respond
+                        </button>
+                    </div>
+                </form>
+            </div>
+            {% empty %}
+            <div class="text-center py-5">
+                <div style="font-size:4rem; opacity:0.3;">✅</div>
+                <h5 class="text-muted mt-3">No complaints found</h5>
+            </div>
+            {% endfor %}
+            
+            {% if complaints.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if complaints.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ complaints.previous_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-left"></i></a></li>
+                    {% endif %}
+                    {% for num in complaints.paginator.page_range %}
+                    <li class="page-item {% if complaints.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&status={{ status_filter }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if complaints.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ complaints.next_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% load static %}
+<div class="sidebar" id="sidebar" style="width: 260px; min-width: 260px;">
+    <div class="px-4 pb-3 mb-2" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <a href="{% url 'landing' %}" class="text-decoration-none">
+            <h5 class="text-white fw-bold mb-0"><i class="fas fa-truck-moving me-2" style="color:#a78bfa;"></i>PackAndGo</h5>
+        </a>
+        <small style="color:rgba(255,255,255,0.5);">Admin Panel</small>
+    </div>
+    
+    <div class="px-4 py-3 mb-2" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div class="d-flex align-items-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:linear-gradient(135deg,#ef4444,#dc2626);">
+                <i class="fas fa-user-shield text-white"></i>
+            </div>
+            <div>
+                <div class="text-white fw-semibold">{{ request.user.username }}</div>
+                <small style="color:rgba(255,255,255,0.5);">Administrator</small>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="mt-2">
+        <a href="{% url 'admin_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'admin_users' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+            <i class="fas fa-users"></i> Users
+        </a>
+        <a href="{% url 'admin_drivers' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_drivers' %}active{% endif %}">
+            <i class="fas fa-id-card"></i> Drivers
+        </a>
+        <a href="{% url 'admin_bookings' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_bookings' %}active{% endif %}">
+            <i class="fas fa-box"></i> Bookings
+        </a>
+        <a href="{% url 'admin_payments' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_payments' %}active{% endif %}">
+            <i class="fas fa-credit-card"></i> Payments
+        </a>
+        <a href="{% url 'admin_complaints' %}" class="sidebar-link {% if request.resolver_match.url_name == 'admin_complaints' %}active{% endif %}">
+            <i class="fas fa-exclamation-triangle"></i> Complaints
+        </a>
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;"></div>
+        <a href="/admin/" class="sidebar-link">
+            <i class="fas fa-cog"></i> Django Admin
+        </a>
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color: #f87171;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>

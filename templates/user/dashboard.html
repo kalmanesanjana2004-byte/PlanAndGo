@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <!-- Main Content -->
+    <div class="flex-grow-1 p-4">
+        <!-- Top Bar -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0">Welcome back, {{ request.user.first_name|default:request.user.username }}! 👋</h4>
+                <p class="text-muted mb-0 mt-1">Here's what's happening with your shipments</p>
+            </div>
+            <a href="{% url 'new_booking' %}" class="btn btn-gradient">
+                <i class="fas fa-plus me-2"></i>New Booking
+            </a>
+        </div>
+        
+        <!-- Stats Cards -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon primary">
+                        <i class="fas fa-box"></i>
+                    </div>
+                    <div class="stat-value">{{ stats.total_bookings }}</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
+                    <div class="stat-icon warning">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="stat-value">{{ stats.active_bookings }}</div>
+                    <div class="stat-label">Active Bookings</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="stat-value">{{ stats.completed_bookings }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #ec4899;">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color:white;">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-value">₹{{ stats.total_spent|floatformat:0 }}</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Bookings -->
+        <div class="glass-card mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Bookings</h5>
+                <a href="{% url 'booking_history' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            
+            {% if recent_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">Booking ID</th>
+                            <th>From → To</th>
+                            <th>Vehicle</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ booking.id }}</strong></td>
+                            <td>
+                                <small class="text-muted">{{ booking.pickup_location|truncatechars:20 }}</small><br>
+                                <small><i class="fas fa-arrow-down text-primary"></i> {{ booking.drop_location|truncatechars:20 }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ booking.get_vehicle_type_display }}</span>
+                            </td>
+                            <td><small>{{ booking.booking_date }}</small></td>
+                            <td><strong>₹{{ booking.estimated_price }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ booking.status }} badge-custom">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'booking_detail' booking.id %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <div style="font-size:4rem; opacity:0.3;">📦</div>
+                <h5 class="text-muted mt-3">No bookings yet</h5>
+                <p class="text-muted">Start by creating your first booking!</p>
+                <a href="{% url 'new_booking' %}" class="btn btn-gradient">
+                    <i class="fas fa-plus me-2"></i>Book Now
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Notifications -->
+        {% if notifications %}
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-bell me-2 text-warning"></i>Notifications</h5>
+            {% for notif in notifications %}
+            <div class="d-flex align-items-start mb-3 p-3 rounded" style="background: #f8fafc;">
+                <div class="me-3">
+                    {% if notif.notif_type == 'booking' %}
+                        <i class="fas fa-truck text-primary fs-5"></i>
+                    {% elif notif.notif_type == 'payment' %}
+                        <i class="fas fa-rupee-sign text-success fs-5"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle text-info fs-5"></i>
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <p class="mb-1">{{ notif.message }}</p>
+                    <small class="text-muted">{{ notif.created_at|timesince }} ago</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

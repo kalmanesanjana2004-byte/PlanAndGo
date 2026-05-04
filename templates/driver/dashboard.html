@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Driver Dashboard - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/driver_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0">Driver Dashboard 🚚</h4>
+                <p class="text-muted mb-0 mt-1">{{ driver.get_vehicle_type_display }} | {{ driver.city }}</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{% url 'toggle_availability' %}" class="btn {% if driver.availability %}btn-success{% else %}btn-outline-secondary{% endif %}">
+                    <i class="fas fa-toggle-{% if driver.availability %}on{% else %}off{% endif %} me-2"></i>
+                    {% if driver.availability %}Available{% else %}Unavailable{% endif %}
+                </a>
+            </div>
+        </div>
+        
+        <!-- Stats -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="fas fa-briefcase"></i></div>
+                    <div class="stat-value">{{ stats.total_jobs }}</div>
+                    <div class="stat-label">Total Jobs</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
+                    <div class="stat-icon warning"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value">{{ stats.active_jobs }}</div>
+                    <div class="stat-label">Active Jobs</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">{{ stats.completed_jobs }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #ec4899;">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color:white;">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-value">₹{{ stats.total_earnings|floatformat:0 }}</div>
+                    <div class="stat-label">Total Earnings</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Bookings -->
+        <div class="glass-card mb-4">
+            <h5 class="fw-bold mb-4"><i class="fas fa-search me-2 text-primary"></i>Available Bookings</h5>
+            {% if available_bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#ID</th>
+                            <th>Route</th>
+                            <th>Vehicle</th>
+                            <th>Date</th>
+                            <th>Earnings</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in available_bookings %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ booking.id }}</strong></td>
+                            <td>
+                                <small><i class="fas fa-map-marker-alt text-success me-1"></i>{{ booking.pickup_location|truncatechars:20 }}</small><br>
+                                <small><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ booking.drop_location|truncatechars:20 }}</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark">{{ booking.get_vehicle_type_display }}</span></td>
+                            <td><small>{{ booking.booking_date }}</small></td>
+                            <td><strong class="text-success">₹{{ booking.estimated_price }}</strong></td>
+                            <td>
+                                <form method="post" action="{% url 'accept_booking' booking.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-gradient">
+                                        <i class="fas fa-check me-1"></i>Accept
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-4">
+                <div style="font-size:3rem; opacity:0.3;">🔍</div>
+                <p class="text-muted mt-2">No available bookings for your vehicle type right now.</p>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Active Jobs -->
+        {% if active_jobs %}
+        <div class="glass-card">
+            <h5 class="fw-bold mb-4"><i class="fas fa-truck me-2 text-warning"></i>Active Jobs</h5>
+            {% for job in active_jobs %}
+            <div class="p-3 rounded-3 mb-3" style="background: #f8fafc; border-left: 4px solid #6366f1;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <strong>#{{ job.id }}</strong>
+                        <span class="badge badge-{{ job.status }} badge-custom ms-2">{{ job.get_status_display }}</span>
+                        <p class="mb-1 mt-2">
+                            <i class="fas fa-map-marker-alt text-success me-1"></i>{{ job.pickup_location }}
+                        </p>
+                        <p class="mb-0">
+                            <i class="fas fa-map-marker-alt text-danger me-1"></i>{{ job.drop_location }}
+                        </p>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-success">₹{{ job.estimated_price }}</div>
+                        <form method="post" action="{% url 'update_booking_status' job.id %}" class="mt-2">
+                            {% csrf_token %}
+                            {% if job.status == 'confirmed' %}
+                            <button type="submit" name="status" value="picked_up" class="btn btn-sm btn-warning">
+                                <i class="fas fa-box me-1"></i>Mark Picked Up
+                            </button>
+                            {% elif job.status == 'picked_up' %}
+                            <button type="submit" name="status" value="in_transit" class="btn btn-sm btn-info">
+                                <i class="fas fa-truck me-1"></i>In Transit
+                            </button>
+                            {% elif job.status == 'in_transit' %}
+                            <button type="submit" name="status" value="delivered" class="btn btn-sm btn-success">
+                                <i class="fas fa-check me-1"></i>Delivered
+                            </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

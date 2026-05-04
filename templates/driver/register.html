@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Driver Registration - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="min-vh-100 d-flex align-items-center justify-content-center py-5" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="text-center mb-4">
+                    <h2 class="text-white fw-bold"><i class="fas fa-truck-moving me-2"></i>PackAndGo</h2>
+                    <p class="text-white" style="opacity:0.8;">Join our driver network and start earning</p>
+                </div>
+                
+                <div class="glass-card">
+                    <div class="text-center mb-4">
+                        <div class="stat-icon primary mx-auto mb-3"><i class="fas fa-steering-wheel"></i></div>
+                        <h4 class="fw-bold">Driver Registration</h4>
+                        <p class="text-muted">Fill in your details to join as a driver</p>
+                    </div>
+                    
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Full Name *</label>
+                                {{ form.driver_name }}
+                                {% if form.driver_name.errors %}<div class="text-danger small">{{ form.driver_name.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Email *</label>
+                                {{ form.email }}
+                                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Phone *</label>
+                                {{ form.phone }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">City *</label>
+                                {{ form.city }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Vehicle Type *</label>
+                                {{ form.vehicle_type }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Vehicle Number *</label>
+                                {{ form.vehicle_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">License Number *</label>
+                                {{ form.license_number }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Profile Photo</label>
+                                {{ form.profile_image }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Password *</label>
+                                {{ form.password }}
+                                {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors.0 }}</div>{% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Confirm Password *</label>
+                                {{ form.confirm_password }}
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-info rounded-3">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Your application will be reviewed by our admin team. You'll be notified once approved.
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-gradient w-100 btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>Submit Application
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                    
+                    <div class="text-center mt-3">
+                        <p class="mb-0">Already registered? <a href="{% url 'login' %}" class="text-primary fw-bold">Sign In</a></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

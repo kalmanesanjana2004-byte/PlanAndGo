@@ -1,0 +1,51 @@
+{% load static %}
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar" style="width: 260px; min-width: 260px;">
+    <!-- Brand -->
+    <div class="px-4 pb-3 mb-2" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <a href="{% url 'landing' %}" class="text-decoration-none">
+            <h5 class="text-white fw-bold mb-0"><i class="fas fa-truck-moving me-2" style="color:#a78bfa;"></i>PackAndGo</h5>
+        </a>
+        <small style="color:rgba(255,255,255,0.5);">User Dashboard</small>
+    </div>
+    
+    <!-- User Info -->
+    <div class="px-4 py-3 mb-2" style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+        <div class="d-flex align-items-center">
+            {% if request.user.profile.profile_image %}
+                <img src="{{ request.user.profile.profile_image.url }}" class="rounded-circle me-3" width="45" height="45" style="object-fit:cover;">
+            {% else %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:45px;height:45px;background:linear-gradient(135deg,#667eea,#764ba2);">
+                    <span class="text-white fw-bold">{{ request.user.username|first|upper }}</span>
+                </div>
+            {% endif %}
+            <div>
+                <div class="text-white fw-semibold">{{ request.user.get_full_name|default:request.user.username }}</div>
+                <small style="color:rgba(255,255,255,0.5);">Customer</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Navigation -->
+    <nav class="mt-2">
+        <a href="{% url 'user_dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user_dashboard' %}active{% endif %}">
+            <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+        <a href="{% url 'new_booking' %}" class="sidebar-link {% if request.resolver_match.url_name == 'new_booking' %}active{% endif %}">
+            <i class="fas fa-plus-circle"></i> New Booking
+        </a>
+        <a href="{% url 'booking_history' %}" class="sidebar-link {% if request.resolver_match.url_name == 'booking_history' %}active{% endif %}">
+            <i class="fas fa-history"></i> Booking History
+        </a>
+        <a href="{% url 'user_profile' %}" class="sidebar-link {% if request.resolver_match.url_name == 'user_profile' %}active{% endif %}">
+            <i class="fas fa-user-circle"></i> My Profile
+        </a>
+        <a href="{% url 'submit_complaint' %}" class="sidebar-link {% if request.resolver_match.url_name == 'submit_complaint' %}active{% endif %}">
+            <i class="fas fa-exclamation-circle"></i> Complaints
+        </a>
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); margin: 1rem 0;"></div>
+        <a href="{% url 'logout' %}" class="sidebar-link" style="color: #f87171;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+    </nav>
+</div>

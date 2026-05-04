@@ -1,0 +1,81 @@
+{% load static %}
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'landing' %}">
+            <i class="fas fa-truck-moving me-2"></i>PackAndGo
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'landing' %}"><i class="fas fa-home me-1"></i>Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'services' %}"><i class="fas fa-truck me-1"></i>Services</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'about' %}"><i class="fas fa-info-circle me-1"></i>About</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'contact' %}"><i class="fas fa-envelope me-1"></i>Contact</a>
+                </li>
+            </ul>
+            
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if user.is_authenticated %}
+                    <!-- Notifications -->
+                    <li class="nav-item me-2">
+                        <a class="nav-link position-relative" href="#" id="notif-bell">
+                            <i class="fas fa-bell fa-lg"></i>
+                            {% with unread=user.notifications.filter %}
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notif-badge">
+                                {{ user.notifications.all|length }}
+                            </span>
+                            {% endwith %}
+                        </a>
+                    </li>
+                    
+                    <!-- User Menu -->
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" data-bs-toggle="dropdown">
+                            {% if user.profile.profile_image %}
+                                <img src="{{ user.profile.profile_image.url }}" class="rounded-circle me-2" width="32" height="32" style="object-fit:cover;">
+                            {% else %}
+                                <div class="rounded-circle bg-gradient-primary d-flex align-items-center justify-content-center me-2" style="width:32px;height:32px;background:linear-gradient(135deg,#667eea,#764ba2);">
+                                    <span class="text-white fw-bold" style="font-size:0.8rem;">{{ user.username|first|upper }}</span>
+                                </div>
+                            {% endif %}
+                            {{ user.first_name|default:user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            {% if user.is_staff or user.is_superuser %}
+                                <li><a class="dropdown-item" href="{% url 'admin_dashboard' %}"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Admin Panel</a></li>
+                            {% else %}
+                                <li><a class="dropdown-item" href="{% url 'user_dashboard' %}"><i class="fas fa-tachometer-alt me-2 text-primary"></i>Dashboard</a></li>
+                                <li><a class="dropdown-item" href="{% url 'new_booking' %}"><i class="fas fa-plus me-2 text-success"></i>New Booking</a></li>
+                                <li><a class="dropdown-item" href="{% url 'user_profile' %}"><i class="fas fa-user me-2 text-info"></i>Profile</a></li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'logout' %}">
+                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item me-2">
+                        <a class="btn btn-neon btn-sm" href="{% url 'login' %}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-gradient btn-sm" href="{% url 'register' %}">Get Started</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

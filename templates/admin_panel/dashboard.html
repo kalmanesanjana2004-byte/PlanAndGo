@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/admin_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0">Admin Dashboard 📊</h4>
+                <p class="text-muted mb-0 mt-1">Overview of PackAndGo platform</p>
+            </div>
+        </div>
+        
+        <!-- Stats Row 1 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card">
+                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                    <div class="stat-value" data-target="{{ stats.total_users }}">0</div>
+                    <div class="stat-label">Total Users</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-icon success"><i class="fas fa-id-card"></i></div>
+                    <div class="stat-value" data-target="{{ stats.approved_drivers }}">0</div>
+                    <div class="stat-label">Active Drivers</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
+                    <div class="stat-icon warning"><i class="fas fa-box"></i></div>
+                    <div class="stat-value" data-target="{{ stats.total_bookings }}">0</div>
+                    <div class="stat-label">Total Bookings</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #ec4899;">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color:white;">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="stat-value">₹{{ stats.total_revenue|floatformat:0 }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Stats Row 2 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #f59e0b;">
+                    <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-value">{{ stats.pending_drivers }}</div>
+                    <div class="stat-label">Pending Drivers</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #3b82f6;">
+                    <div class="stat-icon info"><i class="fas fa-truck"></i></div>
+                    <div class="stat-value">{{ stats.active_bookings }}</div>
+                    <div class="stat-label">Active Bookings</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #10b981;">
+                    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-value">{{ stats.completed_bookings }}</div>
+                    <div class="stat-label">Completed</div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="border-left-color: #ef4444;">
+                    <div class="stat-icon" style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color:white;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-value">{{ stats.open_complaints }}</div>
+                    <div class="stat-label">Open Complaints</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Row -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-chart-line me-2 text-primary"></i>Monthly Revenue</h5>
+                    <canvas id="revenueChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-chart-pie me-2 text-primary"></i>Booking Status</h5>
+                    <canvas id="statusChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-4 mb-4">
+            <div class="col-lg-6">
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-chart-bar me-2 text-primary"></i>Vehicle Distribution</h5>
+                    <canvas id="vehicleChart" height="120"></canvas>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <!-- Quick Actions -->
+                <div class="glass-card">
+                    <h5 class="fw-bold mb-4"><i class="fas fa-bolt me-2 text-warning"></i>Quick Actions</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <a href="{% url 'admin_drivers' %}?status=pending" class="btn btn-warning w-100">
+                                <i class="fas fa-user-check d-block fs-3 mb-2"></i>
+                                Approve Drivers<br><small>({{ stats.pending_drivers }} pending)</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'admin_complaints' %}?status=open" class="btn btn-danger w-100">
+                                <i class="fas fa-exclamation-circle d-block fs-3 mb-2"></i>
+                                Open Complaints<br><small>({{ stats.open_complaints }} open)</small>
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'admin_bookings' %}" class="btn btn-primary w-100">
+                                <i class="fas fa-box d-block fs-3 mb-2"></i>
+                                All Bookings
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{% url 'admin_payments' %}" class="btn btn-success w-100">
+                                <i class="fas fa-credit-card d-block fs-3 mb-2"></i>
+                                Payments
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Bookings -->
+        <div class="glass-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h5 class="fw-bold mb-0"><i class="fas fa-history me-2 text-primary"></i>Recent Bookings</h5>
+                <a href="{% url 'admin_bookings' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#ID</th>
+                            <th>Customer</th>
+                            <th>Driver</th>
+                            <th>Route</th>
+                            <th>Vehicle</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ booking.id }}</strong></td>
+                            <td>{{ booking.user.get_full_name|default:booking.user.username }}</td>
+                            <td>{{ booking.driver.driver_name|default:"Unassigned" }}</td>
+                            <td>
+                                <small>{{ booking.pickup_location|truncatechars:15 }} → {{ booking.drop_location|truncatechars:15 }}</small>
+                            </td>
+                            <td><span class="badge bg-light text-dark">{{ booking.get_vehicle_type_display }}</span></td>
+                            <td><strong>₹{{ booking.estimated_price }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ booking.status }} badge-custom">{{ booking.get_status_display }}</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+// Revenue Chart
+const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+new Chart(revenueCtx, {
+    type: 'line',
+    data: {
+        labels: {{ monthly_labels|safe }},
+        datasets: [{
+            label: 'Revenue (₹)',
+            data: {{ monthly_values|safe }},
+            borderColor: '#6366f1',
+            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: '#6366f1',
+            pointRadius: 5,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: {
+                beginAtZero: true,
+                ticks: { callback: val => '₹' + val.toLocaleString() }
+            }
+        }
+    }
+});
+
+// Status Pie Chart
+const statusData = {{ status_data|safe }};
+const statusCtx = document.getElementById('statusChart').getContext('2d');
+new Chart(statusCtx, {
+    type: 'doughnut',
+    data: {
+        labels: Object.keys(statusData),
+        datasets: [{
+            data: Object.values(statusData),
+            backgroundColor: ['#fbbf24','#3b82f6','#8b5cf6','#06b6d4','#10b981','#ef4444'],
+            borderWidth: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: { position: 'bottom', labels: { padding: 15 } }
+        }
+    }
+});
+
+// Vehicle Chart
+const vehicleData = {{ vehicle_data|safe }};
+const vehicleCtx = document.getElementById('vehicleChart').getContext('2d');
+new Chart(vehicleCtx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(vehicleData),
+        datasets: [{
+            label: 'Bookings',
+            data: Object.values(vehicleData),
+            backgroundColor: ['#6366f1','#8b5cf6','#ec4899','#f59e0b','#10b981'],
+            borderRadius: 8,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

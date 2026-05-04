@@ -1,0 +1,299 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}PackAndGo - Smart Goods Transportation & Shifting Services{% endblock %}
+
+{% block content %}
+
+<!-- ═══ HERO SECTION ═══ -->
+<section class="hero-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 5rem 0;">
+    <div class="container position-relative" style="z-index:1;">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <div class="mb-3">
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,0.2); color:white; font-size:0.9rem;">
+                        <i class="fas fa-star me-1" style="color:#fbbf24;"></i> #1 Trusted Shifting Service
+                    </span>
+                </div>
+                <h1 class="hero-title">Move Anything,<br><span style="color:#fbbf24;">Anywhere</span> in India</h1>
+                <p class="hero-subtitle">Professional goods transportation for households, offices, and businesses. Fast, safe, and affordable.</p>
+                <div class="d-flex flex-wrap gap-3 mt-4" style="animation: fadeInUp 1s ease 0.4s both;">
+                    <a href="{% url 'register' %}" class="btn btn-gradient btn-lg px-4">
+                        <i class="fas fa-rocket me-2"></i>Book Now
+                    </a>
+                    <a href="{% url 'services' %}" class="btn btn-neon btn-lg px-4" style="border-color:white; color:white;">
+                        <i class="fas fa-play-circle me-2"></i>Learn More
+                    </a>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="row g-3 mt-4">
+                    <div class="col-4">
+                        <div class="text-center text-white">
+                            <div class="fw-bold fs-4" data-target="{{ stats.total_bookings }}">0</div>
+                            <small style="opacity:0.8;">Bookings</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center text-white">
+                            <div class="fw-bold fs-4" data-target="{{ stats.total_drivers }}">0</div>
+                            <small style="opacity:0.8;">Drivers</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center text-white">
+                            <div class="fw-bold fs-4" data-target="{{ stats.cities_covered }}">0</div>
+                            <small style="opacity:0.8;">Cities</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 text-center mt-5 mt-lg-0">
+                <!-- Animated truck illustration -->
+                <div class="glass-card p-4" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.3);">
+                    <div style="font-size: 8rem; animation: float 3s ease-in-out infinite;">🚚</div>
+                    <h4 class="text-white mt-3">Real-time Tracking</h4>
+                    <p class="text-white" style="opacity:0.9;">Track your shipment live on the map</p>
+                    
+                    <!-- Fake tracking bar -->
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-between text-white mb-2">
+                            <small><i class="fas fa-map-marker-alt me-1"></i>Mumbai</small>
+                            <small><i class="fas fa-map-marker-alt me-1"></i>Delhi</small>
+                        </div>
+                        <div class="progress-custom">
+                            <div class="progress-bar-custom" style="width: 65%;"></div>
+                        </div>
+                        <small class="text-white mt-1 d-block" style="opacity:0.8;">In Transit — 65% Complete</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+</style>
+
+<!-- ═══ SERVICES SECTION ═══ -->
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="text-center mb-5 scroll-animate">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-3">Our Services</span>
+            <h2 class="fw-bold fs-1">Choose Your <span class="text-gradient">Vehicle</span></h2>
+            <p class="text-muted fs-5">From small packages to large furniture — we have the right vehicle for you</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for vehicle in vehicles %}
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">{{ vehicle.icon }}</div>
+                    <h5 class="fw-bold">{{ vehicle.name }}</h5>
+                    <p class="text-muted">{{ vehicle.description }}</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹{{ vehicle.price }}</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Default vehicle cards -->
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">🏍️</div>
+                    <h5 class="fw-bold">Bike Delivery</h5>
+                    <p class="text-muted">Perfect for small packages, documents, and food items. Fast city delivery.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹50</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">🚐</div>
+                    <h5 class="fw-bold">Mini Truck</h5>
+                    <p class="text-muted">Ideal for small household shifting, appliances, and office equipment.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹200</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">🚛</div>
+                    <h5 class="fw-bold">Pickup Van</h5>
+                    <p class="text-muted">Great for medium-sized moves, furniture, and bulk goods transport.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹300</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">🚚</div>
+                    <h5 class="fw-bold">Tempo</h5>
+                    <p class="text-muted">Suitable for full home shifting, large furniture, and commercial goods.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹400</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6 scroll-animate">
+                <div class="vehicle-card h-100">
+                    <div class="vehicle-icon">🏗️</div>
+                    <h5 class="fw-bold">Large Truck</h5>
+                    <p class="text-muted">For heavy industrial goods, full office relocation, and long-distance moves.</p>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <span class="text-gradient fw-bold fs-5">Starting ₹600</span>
+                        <a href="{% url 'new_booking' %}" class="btn btn-gradient btn-sm">Book Now</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="py-5" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+    <div class="container">
+        <div class="text-center mb-5 scroll-animate">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-3">Simple Process</span>
+            <h2 class="fw-bold fs-1">How It <span class="text-gradient">Works</span></h2>
+        </div>
+        
+        <div class="row g-4 text-center">
+            <div class="col-md-3 scroll-animate">
+                <div class="glass-card">
+                    <div class="stat-icon primary mx-auto mb-3">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="badge bg-primary rounded-pill mb-2">Step 1</div>
+                    <h5 class="fw-bold">Register</h5>
+                    <p class="text-muted">Create your free account in under 2 minutes</p>
+                </div>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="glass-card">
+                    <div class="stat-icon success mx-auto mb-3">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <div class="badge bg-success rounded-pill mb-2">Step 2</div>
+                    <h5 class="fw-bold">Book</h5>
+                    <p class="text-muted">Enter pickup/drop locations and select vehicle</p>
+                </div>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="glass-card">
+                    <div class="stat-icon warning mx-auto mb-3">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="badge bg-warning rounded-pill mb-2">Step 3</div>
+                    <h5 class="fw-bold">Track</h5>
+                    <p class="text-muted">Monitor your shipment in real-time</p>
+                </div>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="glass-card">
+                    <div class="stat-icon info mx-auto mb-3">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="badge bg-info rounded-pill mb-2">Step 4</div>
+                    <h5 class="fw-bold">Delivered</h5>
+                    <p class="text-muted">Receive your goods safely and on time</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ STATS SECTION ═══ -->
+<section class="py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row g-4 text-center text-white">
+            <div class="col-md-3 scroll-animate">
+                <div class="fs-1 fw-bold" data-target="{{ stats.total_bookings|default:1250 }}">0</div>
+                <p class="mb-0" style="opacity:0.9;">Total Bookings</p>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="fs-1 fw-bold" data-target="{{ stats.total_drivers|default:85 }}">0</div>
+                <p class="mb-0" style="opacity:0.9;">Verified Drivers</p>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="fs-1 fw-bold" data-target="{{ stats.total_users|default:3200 }}">0</div>
+                <p class="mb-0" style="opacity:0.9;">Happy Customers</p>
+            </div>
+            <div class="col-md-3 scroll-animate">
+                <div class="fs-1 fw-bold" data-target="{{ stats.cities_covered }}">0</div>
+                <p class="mb-0" style="opacity:0.9;">Cities Covered</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ REVIEWS ═══ -->
+{% if reviews %}
+<section class="py-5" style="background: white;">
+    <div class="container">
+        <div class="text-center mb-5 scroll-animate">
+            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill mb-3">Testimonials</span>
+            <h2 class="fw-bold fs-1">What Our <span class="text-gradient">Customers Say</span></h2>
+        </div>
+        <div class="row g-4">
+            {% for review in reviews %}
+            <div class="col-md-4 scroll-animate">
+                <div class="glass-card h-100">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:50px;height:50px;background:linear-gradient(135deg,#667eea,#764ba2);">
+                            <span class="text-white fw-bold">{{ review.user.username|first|upper }}</span>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ review.user.get_full_name|default:review.user.username }}</h6>
+                            <small class="text-muted">{{ review.created_at|date:"M Y" }}</small>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= review.rating %}
+                                <i class="fas fa-star text-warning"></i>
+                            {% else %}
+                                <i class="far fa-star text-warning"></i>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <p class="text-muted mb-0">"{{ review.comment|truncatewords:30 }}"</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- ═══ CTA SECTION ═══ -->
+<section class="py-5" style="background: linear-gradient(135deg, #1e293b 0%, #334155 100%);">
+    <div class="container text-center">
+        <h2 class="text-white fw-bold fs-1 mb-3">Ready to Move?</h2>
+        <p class="text-white mb-4" style="opacity:0.8; font-size:1.2rem;">Join thousands of satisfied customers. Book your first shift today!</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a href="{% url 'register' %}" class="btn btn-gradient btn-lg px-5">
+                <i class="fas fa-rocket me-2"></i>Get Started Free
+            </a>
+            <a href="{% url 'driver_register' %}" class="btn btn-neon btn-lg px-5" style="border-color:white; color:white;">
+                <i class="fas fa-steering-wheel me-2"></i>Become a Driver
+            </a>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

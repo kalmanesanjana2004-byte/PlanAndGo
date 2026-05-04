@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}New Booking - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center mb-4">
+            <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div>
+                <h4 class="fw-bold mb-0"><i class="fas fa-plus-circle me-2 text-primary"></i>New Booking</h4>
+                <p class="text-muted mb-0">Fill in the details to book your transportation</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <!-- Booking Form -->
+            <div class="col-lg-8">
+                <div class="glass-card">
+                    <form method="post" enctype="multipart/form-data" id="booking-form">
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Locations -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>Pickup & Drop Locations</h6>
+                            <div class="row g-3">
+                                <div class="col-md-8">
+                                    <label class="form-label">Pickup Address *</label>
+                                    {{ form.pickup_location }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Pickup City *</label>
+                                    {{ form.pickup_city }}
+                                </div>
+                                <div class="col-md-8">
+                                    <label class="form-label">Drop Address *</label>
+                                    {{ form.drop_location }}
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Drop City *</label>
+                                    {{ form.drop_city }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Distance (KM) *</label>
+                                    {{ form.distance_km }}
+                                    <small class="text-muted">Approximate distance between locations</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Booking Date *</label>
+                                    {{ form.booking_date }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Vehicle Selection -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-truck me-2"></i>Select Vehicle Type</h6>
+                            <div class="row g-3 mb-3">
+                                <div class="col-4 col-md-2">
+                                    <div class="vehicle-card p-2 text-center" data-vehicle="bike">
+                                        <div style="font-size:2rem;">🏍️</div>
+                                        <small class="fw-semibold">Bike</small>
+                                        <div class="text-gradient small">₹50+</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-2">
+                                    <div class="vehicle-card p-2 text-center" data-vehicle="mini_truck">
+                                        <div style="font-size:2rem;">🚐</div>
+                                        <small class="fw-semibold">Mini Truck</small>
+                                        <div class="text-gradient small">₹200+</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-2">
+                                    <div class="vehicle-card p-2 text-center" data-vehicle="pickup_van">
+                                        <div style="font-size:2rem;">🚛</div>
+                                        <small class="fw-semibold">Pickup Van</small>
+                                        <div class="text-gradient small">₹300+</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-2">
+                                    <div class="vehicle-card p-2 text-center" data-vehicle="tempo">
+                                        <div style="font-size:2rem;">🚚</div>
+                                        <small class="fw-semibold">Tempo</small>
+                                        <div class="text-gradient small">₹400+</div>
+                                    </div>
+                                </div>
+                                <div class="col-4 col-md-2">
+                                    <div class="vehicle-card p-2 text-center" data-vehicle="large_truck">
+                                        <div style="font-size:2rem;">🏗️</div>
+                                        <small class="fw-semibold">Large Truck</small>
+                                        <div class="text-gradient small">₹600+</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="display:none;">{{ form.vehicle_type }}</div>
+                        </div>
+                        
+                        <!-- Step 3: Item Details -->
+                        <div class="mb-4">
+                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-box me-2"></i>Item Details</h6>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label">Item Description *</label>
+                                    {{ form.item_description }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Item Photo (Optional)</label>
+                                    {{ form.item_image }}
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">Special Instructions</label>
+                                    {{ form.special_instructions }}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-gradient btn-lg w-100">
+                            <i class="fas fa-check-circle me-2"></i>Confirm Booking
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Price Estimator -->
+            <div class="col-lg-4">
+                <div class="glass-card sticky-top" style="top: 20px;">
+                    <h6 class="fw-bold mb-4"><i class="fas fa-calculator me-2 text-primary"></i>Price Estimator</h6>
+                    
+                    <div class="text-center py-4">
+                        <div class="text-muted mb-2">Estimated Price</div>
+                        <div class="display-5 fw-bold text-gradient" id="price-display">₹0</div>
+                        <small class="text-muted">*Final price may vary</small>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Base Price</span>
+                            <span id="base-price">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Distance Charge</span>
+                            <span id="distance-charge">₹0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Handling Fee</span>
+                            <span id="handling-fee">₹0</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between fw-bold">
+                            <span>Total</span>
+                            <span class="text-gradient" id="total-price">₹0</span>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info rounded-3 small">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Price is calculated based on vehicle type, distance, and handling charges.
+                    </div>
+                    
+                    <div class="mt-3">
+                        <h6 class="fw-bold mb-3">Why Choose Us?</h6>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-shield-alt text-success me-2"></i>
+                            <small>Insured Transportation</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-clock text-primary me-2"></i>
+                            <small>On-time Delivery</small>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <i class="fas fa-star text-warning me-2"></i>
+                            <small>Verified Drivers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Enhanced price calculator with breakdown
+const vehicleSelect = document.getElementById('id_vehicle_type');
+const distanceInput = document.getElementById('id_distance_km');
+
+const basePrices = {
+    'bike': 50, 'mini_truck': 200, 'pickup_van': 300, 'tempo': 400, 'large_truck': 600
+};
+const perKmRates = {
+    'bike': 8, 'mini_truck': 15, 'pickup_van': 18, 'tempo': 22, 'large_truck': 30
+};
+
+function updatePriceBreakdown() {
+    const vehicle = vehicleSelect ? vehicleSelect.value : '';
+    const distance = parseFloat(distanceInput ? distanceInput.value : 0) || 0;
+    
+    if (!vehicle) return;
+    
+    const base = basePrices[vehicle] || 0;
+    const distCharge = distance * (perKmRates[vehicle] || 15);
+    const handling = base * 0.1;
+    const total = base + distCharge + handling;
+    
+    document.getElementById('base-price').textContent = '₹' + base.toFixed(0);
+    document.getElementById('distance-charge').textContent = '₹' + distCharge.toFixed(0);
+    document.getElementById('handling-fee').textContent = '₹' + handling.toFixed(0);
+    document.getElementById('total-price').textContent = '₹' + total.toFixed(0);
+    document.getElementById('price-display').textContent = '₹' + total.toFixed(0);
+}
+
+if (vehicleSelect) vehicleSelect.addEventListener('change', updatePriceBreakdown);
+if (distanceInput) distanceInput.addEventListener('input', updatePriceBreakdown);
+</script>
+{% endblock %}

@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% block title %}Booking History - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/dashboard_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0"><i class="fas fa-history me-2 text-primary"></i>Booking History</h4>
+            </div>
+            <a href="{% url 'new_booking' %}" class="btn btn-gradient">
+                <i class="fas fa-plus me-2"></i>New Booking
+            </a>
+        </div>
+        
+        <!-- Filters -->
+        <div class="glass-card mb-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by location or item..." value="{{ search }}">
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
+                        <option value="in_transit" {% if status_filter == 'in_transit' %}selected{% endif %}>In Transit</option>
+                        <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-gradient w-100">
+                        <i class="fas fa-search me-2"></i>Filter
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Bookings Table -->
+        <div class="glass-card">
+            {% if bookings %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#ID</th>
+                            <th>Pickup</th>
+                            <th>Drop</th>
+                            <th>Vehicle</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ booking.id }}</strong></td>
+                            <td>
+                                <i class="fas fa-map-marker-alt text-success me-1"></i>
+                                {{ booking.pickup_location|truncatechars:25 }}
+                                {% if booking.pickup_city %}<br><small class="text-muted">{{ booking.pickup_city }}</small>{% endif %}
+                            </td>
+                            <td>
+                                <i class="fas fa-map-marker-alt text-danger me-1"></i>
+                                {{ booking.drop_location|truncatechars:25 }}
+                                {% if booking.drop_city %}<br><small class="text-muted">{{ booking.drop_city }}</small>{% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-dark">{{ booking.get_vehicle_type_display }}</span>
+                            </td>
+                            <td><small>{{ booking.booking_date }}</small></td>
+                            <td><strong class="text-success">₹{{ booking.estimated_price }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ booking.status }} badge-custom">
+                                    {{ booking.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a href="{% url 'booking_detail' booking.id %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if booking.status == 'pending' %}
+                                    <a href="{% url 'payment_page' booking.id %}" class="btn btn-sm btn-outline-success" data-bs-toggle="tooltip" title="Pay Now">
+                                        <i class="fas fa-credit-card"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if bookings.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if bookings.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ bookings.previous_page_number }}&status={{ status_filter }}&search={{ search }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% for num in bookings.paginator.page_range %}
+                    <li class="page-item {% if bookings.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&status={{ status_filter }}&search={{ search }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if bookings.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ bookings.next_page_number }}&status={{ status_filter }}&search={{ search }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div style="font-size:4rem; opacity:0.3;">📦</div>
+                <h5 class="text-muted mt-3">No bookings found</h5>
+                <p class="text-muted">{% if search or status_filter %}Try adjusting your filters{% else %}Create your first booking!{% endif %}</p>
+                <a href="{% url 'new_booking' %}" class="btn btn-gradient">
+                    <i class="fas fa-plus me-2"></i>Book Now
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

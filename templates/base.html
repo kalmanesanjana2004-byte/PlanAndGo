@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PackAndGo - Smart Goods Transportation{% endblock %}</title>
+    
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+    
+    <style>
+        /* Page loader */
+        #page-loader {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        .loader-logo {
+            color: white;
+            font-size: 2rem;
+            font-weight: 800;
+            animation: pulse 1s ease infinite;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Page Loader -->
+<div id="page-loader">
+    <div class="loader-logo">
+        <i class="fas fa-truck-moving me-2"></i>PackAndGo
+    </div>
+</div>
+
+{% block navbar %}
+{% include 'components/navbar.html' %}
+{% endblock %}
+
+<!-- Flash Messages -->
+{% if messages %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1100; margin-top: 70px;">
+    {% for message in messages %}
+    <div class="toast show alert-auto-dismiss" role="alert">
+        <div class="toast-header bg-{{ message.tags }} text-white">
+            <i class="fas fa-bell me-2"></i>
+            <strong class="me-auto">PackAndGo</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body">{{ message }}</div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+{% include 'components/footer.html' %}
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- Custom JS -->
+<script src="{% static 'js/main.js' %}"></script>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>

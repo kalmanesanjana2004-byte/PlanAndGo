@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block title %}My Jobs - PackAndGo{% endblock %}
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
+    {% include 'components/driver_sidebar.html' %}
+    
+    <div class="flex-grow-1 p-4">
+        <div class="d-flex align-items-center justify-content-between mb-4">
+            <div>
+                <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h4 class="fw-bold d-inline mb-0"><i class="fas fa-briefcase me-2 text-primary"></i>My Jobs</h4>
+            </div>
+        </div>
+        
+        <!-- Filter -->
+        <div class="glass-card mb-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">Filter by Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All</option>
+                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
+                        <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
+                        <option value="in_transit" {% if status_filter == 'in_transit' %}selected{% endif %}>In Transit</option>
+                        <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-gradient w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="glass-card">
+            {% if jobs %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
+                        <tr>
+                            <th class="py-3 px-3">#ID</th>
+                            <th>Customer</th>
+                            <th>Route</th>
+                            <th>Date</th>
+                            <th>Earnings</th>
+                            <th>Status</th>
+                            <th>Update</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in jobs %}
+                        <tr>
+                            <td class="px-3"><strong>#{{ job.id }}</strong></td>
+                            <td>{{ job.user.get_full_name|default:job.user.username }}</td>
+                            <td>
+                                <small><i class="fas fa-map-marker-alt text-success me-1"></i>{{ job.pickup_location|truncatechars:20 }}</small><br>
+                                <small><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ job.drop_location|truncatechars:20 }}</small>
+                            </td>
+                            <td><small>{{ job.booking_date }}</small></td>
+                            <td><strong class="text-success">₹{{ job.estimated_price }}</strong></td>
+                            <td>
+                                <span class="badge badge-{{ job.status }} badge-custom">{{ job.get_status_display }}</span>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'update_booking_status' job.id %}">
+                                    {% csrf_token %}
+                                    {% if job.status == 'confirmed' %}
+                                    <button type="submit" name="status" value="picked_up" class="btn btn-sm btn-warning">Picked Up</button>
+                                    {% elif job.status == 'picked_up' %}
+                                    <button type="submit" name="status" value="in_transit" class="btn btn-sm btn-info">In Transit</button>
+                                    {% elif job.status == 'in_transit' %}
+                                    <button type="submit" name="status" value="delivered" class="btn btn-sm btn-success">Delivered</button>
+                                    {% else %}
+                                    <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if jobs.has_other_pages %}
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if jobs.has_previous %}
+                    <li class="page-item"><a class="page-link" href="?page={{ jobs.previous_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-left"></i></a></li>
+                    {% endif %}
+                    {% for num in jobs.paginator.page_range %}
+                    <li class="page-item {% if jobs.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&status={{ status_filter }}">{{ num }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if jobs.has_next %}
+                    <li class="page-item"><a class="page-link" href="?page={{ jobs.next_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-right"></i></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-5">
+                <div style="font-size:4rem; opacity:0.3;">📋</div>
+                <h5 class="text-muted mt-3">No jobs found</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
