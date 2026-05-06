@@ -64,48 +64,10 @@ document.querySelectorAll('.scroll-animate').forEach(el => {
     scrollObserver.observe(el);
 });
 
-// ─────────────────────────────────────────────
-// PRICE CALCULATOR
-// ─────────────────────────────────────────────
-const vehicleSelect = document.getElementById('id_vehicle_type');
-const distanceInput = document.getElementById('id_distance_km');
-const priceDisplay = document.getElementById('price-display');
+// Price calculation is handled inline in new_booking.html
 
-function updatePrice() {
-    const vehicle = vehicleSelect ? vehicleSelect.value : '';
-    const distance = distanceInput ? distanceInput.value : 0;
-
-    if (!vehicle || !distance) return;
-
-    fetch(`/api/calculate-price/?vehicle_type=${vehicle}&distance=${distance}`)
-        .then(res => res.json())
-        .then(data => {
-            if (priceDisplay) {
-                priceDisplay.textContent = `₹${data.price.toLocaleString()}`;
-                priceDisplay.classList.add('price-updated');
-                setTimeout(() => priceDisplay.classList.remove('price-updated'), 500);
-            }
-        })
-        .catch(err => console.error('Price calculation error:', err));
-}
-
-if (vehicleSelect) vehicleSelect.addEventListener('change', updatePrice);
-if (distanceInput) distanceInput.addEventListener('input', updatePrice);
-
-// ─────────────────────────────────────────────
-// VEHICLE CARD SELECTION
-// ─────────────────────────────────────────────
-document.querySelectorAll('.vehicle-card').forEach(card => {
-    card.addEventListener('click', () => {
-        document.querySelectorAll('.vehicle-card').forEach(c => c.classList.remove('selected'));
-        card.classList.add('selected');
-        const vehicleType = card.getAttribute('data-vehicle');
-        if (vehicleSelect) {
-            vehicleSelect.value = vehicleType;
-            vehicleSelect.dispatchEvent(new Event('change'));
-        }
-    });
-});
+// Vehicle card selection is handled inline in new_booking.html
+// to avoid conflicts with page-specific state (selectedVehicle variable).
 
 // ─────────────────────────────────────────────
 // SIDEBAR TOGGLE (Mobile)

@@ -16,6 +16,7 @@ from decimal import Decimal
 import json
 import random
 import string
+import functools
 
 from .models import (
     UserProfile, Driver, Booking, Payment, Review,
@@ -440,6 +441,7 @@ def driver_register(request):
 
 def driver_required(view_func):
     """Decorator to ensure user is an approved driver."""
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated:
             return redirect('login')
@@ -608,6 +610,7 @@ def toggle_availability(request):
 # ─────────────────────────────────────────────
 def admin_required(view_func):
     """Decorator to ensure user is admin/staff."""
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.user.is_authenticated or not (request.user.is_staff or request.user.is_superuser):
             messages.error(request, 'Admin access required.')

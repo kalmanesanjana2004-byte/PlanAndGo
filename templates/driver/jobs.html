@@ -5,40 +5,44 @@
 {% block content %}
 <div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
     {% include 'components/driver_sidebar.html' %}
-    
+
     <div class="flex-grow-1 p-4">
         <div class="d-flex align-items-center justify-content-between mb-4">
             <div>
                 <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
                     <i class="fas fa-bars"></i>
                 </button>
-                <h4 class="fw-bold d-inline mb-0"><i class="fas fa-briefcase me-2 text-primary"></i>My Jobs</h4>
+                <h4 class="fw-bold d-inline mb-0">
+                    <i class="fas fa-briefcase me-2 text-primary"></i>My Jobs
+                </h4>
             </div>
         </div>
-        
+
         <!-- Filter -->
         <div class="glass-card mb-4">
             <form method="get" class="row g-3 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label">Filter by Status</label>
+                    <label class="form-label fw-semibold">Filter by Status</label>
                     <select name="status" class="form-select">
-                        <option value="">All</option>
-                        <option value="confirmed" {% if status_filter == 'confirmed' %}selected{% endif %}>Confirmed</option>
-                        <option value="picked_up" {% if status_filter == 'picked_up' %}selected{% endif %}>Picked Up</option>
+                        <option value="">All Jobs</option>
+                        <option value="confirmed"  {% if status_filter == 'confirmed'  %}selected{% endif %}>Confirmed</option>
+                        <option value="picked_up"  {% if status_filter == 'picked_up'  %}selected{% endif %}>Picked Up</option>
                         <option value="in_transit" {% if status_filter == 'in_transit' %}selected{% endif %}>In Transit</option>
-                        <option value="delivered" {% if status_filter == 'delivered' %}selected{% endif %}>Delivered</option>
+                        <option value="delivered"  {% if status_filter == 'delivered'  %}selected{% endif %}>Delivered</option>
                     </select>
                 </div>
                 <div class="col-md-3">
-                    <button type="submit" class="btn btn-gradient w-100">Filter</button>
+                    <button type="submit" class="btn btn-gradient w-100">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
                 </div>
             </form>
         </div>
-        
+
         <div class="glass-card">
             {% if jobs %}
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0">
                     <thead style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white;">
                         <tr>
                             <th class="py-3 px-3">#ID</th>
@@ -47,48 +51,79 @@
                             <th>Date</th>
                             <th>Earnings</th>
                             <th>Status</th>
-                            <th>Update</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for job in jobs %}
                         <tr>
                             <td class="px-3"><strong>#{{ job.id }}</strong></td>
-                            <td>{{ job.user.get_full_name|default:job.user.username }}</td>
                             <td>
-                                <small><i class="fas fa-map-marker-alt text-success me-1"></i>{{ job.pickup_location|truncatechars:20 }}</small><br>
-                                <small><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ job.drop_location|truncatechars:20 }}</small>
+                                <div class="fw-semibold">{{ job.user.get_full_name|default:job.user.username }}</div>
+                                <small class="text-muted">{{ job.user.email }}</small>
+                            </td>
+                            <td>
+                                <small><i class="fas fa-map-marker-alt text-success me-1"></i>{{ job.pickup_location|truncatechars:22 }}</small><br>
+                                <small><i class="fas fa-map-marker-alt text-danger me-1"></i>{{ job.drop_location|truncatechars:22 }}</small>
                             </td>
                             <td><small>{{ job.booking_date }}</small></td>
                             <td><strong class="text-success">₹{{ job.estimated_price }}</strong></td>
                             <td>
-                                <span class="badge badge-{{ job.status }} badge-custom">{{ job.get_status_display }}</span>
+                                <span class="badge badge-{{ job.status }} badge-custom">
+                                    {{ job.get_status_display }}
+                                </span>
                             </td>
                             <td>
-                                <form method="post" action="{% url 'update_booking_status' job.id %}">
-                                    {% csrf_token %}
-                                    {% if job.status == 'confirmed' %}
-                                    <button type="submit" name="status" value="picked_up" class="btn btn-sm btn-warning">Picked Up</button>
-                                    {% elif job.status == 'picked_up' %}
-                                    <button type="submit" name="status" value="in_transit" class="btn btn-sm btn-info">In Transit</button>
-                                    {% elif job.status == 'in_transit' %}
-                                    <button type="submit" name="status" value="delivered" class="btn btn-sm btn-success">Delivered</button>
-                                    {% else %}
+                                {% if job.status == 'confirmed' %}
+                                    <button type="button"
+                                        class="btn btn-sm btn-warning fw-semibold status-btn"
+                                        data-job-id="{{ job.id }}"
+                                        data-new-status="picked_up"
+                                        data-label="Mark as Picked Up"
+                                        data-icon="fas fa-box"
+                                        data-color="warning">
+                                        <i class="fas fa-box me-1"></i>Picked Up
+                                    </button>
+                                {% elif job.status == 'picked_up' %}
+                                    <button type="button"
+                                        class="btn btn-sm btn-info fw-semibold status-btn"
+                                        data-job-id="{{ job.id }}"
+                                        data-new-status="in_transit"
+                                        data-label="Mark as In Transit"
+                                        data-icon="fas fa-truck"
+                                        data-color="info">
+                                        <i class="fas fa-truck me-1"></i>In Transit
+                                    </button>
+                                {% elif job.status == 'in_transit' %}
+                                    <button type="button"
+                                        class="btn btn-sm btn-success fw-semibold status-btn"
+                                        data-job-id="{{ job.id }}"
+                                        data-new-status="delivered"
+                                        data-label="Mark as Delivered"
+                                        data-icon="fas fa-check-circle"
+                                        data-color="success">
+                                        <i class="fas fa-check-circle me-1"></i>Delivered
+                                    </button>
+                                {% else %}
                                     <span class="text-muted small">—</span>
-                                    {% endif %}
-                                </form>
+                                {% endif %}
                             </td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
             </div>
-            
+
+            <!-- Pagination -->
             {% if jobs.has_other_pages %}
             <nav class="mt-4">
                 <ul class="pagination justify-content-center">
                     {% if jobs.has_previous %}
-                    <li class="page-item"><a class="page-link" href="?page={{ jobs.previous_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-left"></i></a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ jobs.previous_page_number }}&status={{ status_filter }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
                     {% endif %}
                     {% for num in jobs.paginator.page_range %}
                     <li class="page-item {% if jobs.number == num %}active{% endif %}">
@@ -96,19 +131,87 @@
                     </li>
                     {% endfor %}
                     {% if jobs.has_next %}
-                    <li class="page-item"><a class="page-link" href="?page={{ jobs.next_page_number }}&status={{ status_filter }}"><i class="fas fa-chevron-right"></i></a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ jobs.next_page_number }}&status={{ status_filter }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
                     {% endif %}
                 </ul>
             </nav>
             {% endif %}
-            
+
             {% else %}
             <div class="text-center py-5">
                 <div style="font-size:4rem; opacity:0.3;">📋</div>
                 <h5 class="text-muted mt-3">No jobs found</h5>
+                <p class="text-muted">Try changing the filter or check back later.</p>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- ── Confirmation Modal ──────────────────────────────────── -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px; border:none; overflow:hidden;">
+            <div class="modal-header border-0 pb-0" id="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="modal-title text-white fw-bold" id="modal-title">
+                    <i id="modal-icon" class="me-2"></i>
+                    <span id="modal-title-text">Update Status</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4 pb-2 px-4">
+                <p class="mb-1" id="modal-message">Are you sure you want to update this job status?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    Cancel
+                </button>
+                <!-- Hidden form — submitted on confirm -->
+                <form id="status-form" method="post" action="" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" id="status-input" value="">
+                    <button type="submit" class="btn btn-gradient rounded-pill px-4" id="modal-confirm-btn">
+                        <i id="modal-confirm-icon" class="me-2"></i>Confirm
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.status-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const jobId     = btn.getAttribute('data-job-id');
+        const newStatus = btn.getAttribute('data-new-status');
+        const label     = btn.getAttribute('data-label');
+        const icon      = btn.getAttribute('data-icon');
+
+        // Status descriptions
+        const descriptions = {
+            'picked_up':  'Confirm that you have physically picked up the items for Job #' + jobId + '.',
+            'in_transit': 'Confirm that Job #' + jobId + ' is now in transit to the drop location.',
+            'delivered':  'Confirm that Job #' + jobId + ' has been successfully delivered. This will update your earnings.'
+        };
+
+        // Populate modal
+        document.getElementById('modal-title-text').textContent = label;
+        document.getElementById('modal-icon').className         = icon + ' me-2';
+        document.getElementById('modal-confirm-icon').className = icon + ' me-2';
+        document.getElementById('modal-message').textContent    = descriptions[newStatus] || 'Update job status?';
+
+        // Set form action + hidden input
+        document.getElementById('status-form').action = '/driver/jobs/' + jobId + '/update/';
+        document.getElementById('status-input').value = newStatus;
+
+        // Show modal
+        new bootstrap.Modal(document.getElementById('statusModal')).show();
+    });
+});
+</script>
 {% endblock %}

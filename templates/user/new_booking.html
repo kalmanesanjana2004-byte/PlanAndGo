@@ -2,10 +2,127 @@
 {% block title %}New Booking - PackAndGo{% endblock %}
 {% block navbar %}{% endblock %}
 
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+    /* ── Vehicle Cards ─────────────────────────────── */
+    .vehicle-option {
+        position: relative;
+        background: white;
+        border-radius: 15px;
+        padding: 1rem 0.5rem;
+        text-align: center;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: 3px solid transparent;
+        user-select: none;
+    }
+    .vehicle-option:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+        border-color: #6366f1;
+    }
+    .vehicle-option.selected {
+        border-color: #6366f1;
+        background: linear-gradient(135deg, rgba(102,126,234,0.12) 0%, rgba(118,75,162,0.12) 100%);
+        box-shadow: 0 0 0 4px rgba(99,102,241,0.15), 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .vehicle-option.selected::after {
+        content: '✓';
+        position: absolute;
+        top: 5px; right: 8px;
+        font-size: 0.75rem;
+        color: #6366f1;
+        font-weight: 900;
+    }
+    .vehicle-option .vehicle-emoji { font-size: 2.2rem; line-height: 1; margin-bottom: 0.4rem; }
+    .vehicle-option .vehicle-name  { font-size: 0.78rem; font-weight: 700; color: #1e293b; display: block; }
+    .vehicle-option.selected .vehicle-name { color: #4f46e5; }
+    .vehicle-option .vehicle-price {
+        font-size: 0.72rem; font-weight: 600;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    /* ── Map ───────────────────────────────────────── */
+    #map-container {
+        height: 240px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 2px solid #e2e8f0;
+        margin-top: 0.75rem;
+        position: relative;
+    }
+    #map { width: 100%; height: 100%; }
+
+    /* ── Autocomplete Dropdown ─────────────────────── */
+    .autocomplete-dropdown {
+        position: absolute;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+        z-index: 9999;
+        max-height: 220px;
+        overflow-y: auto;
+        width: 100%;
+        top: 100%;
+        left: 0;
+        margin-top: 2px;
+        font-family: 'Inter', sans-serif;
+    }
+    .autocomplete-item {
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        border-bottom: 1px solid #f1f5f9;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: #f1f5f9; }
+    .autocomplete-item i { color: #6366f1; margin-top: 2px; flex-shrink: 0; }
+    .autocomplete-item .ac-main { font-weight: 600; color: #1e293b; }
+    .autocomplete-item .ac-sub  { font-size: 0.78rem; color: #64748b; }
+    .autocomplete-loading {
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+        color: #64748b;
+        text-align: center;
+    }
+
+    /* Input wrapper for positioning dropdown */
+    .ac-wrapper { position: relative; }
+
+    /* Input group border fix */
+    .input-group .form-control {
+        border-left: none;
+        border-radius: 0 10px 10px 0 !important;
+    }
+
+    /* ── Distance badge ────────────────────────────── */
+    #distance-badge {
+        display: none;
+        font-size: 0.8rem;
+    }
+
+    /* ── Vehicle error ─────────────────────────────── */
+    #vehicle-error {
+        display: none;
+        color: #ef4444;
+        font-size: 0.85rem;
+        margin-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="d-flex" style="min-height: 100vh; background: #f1f5f9;">
     {% include 'components/dashboard_sidebar.html' %}
-    
+
     <div class="flex-grow-1 p-4">
         <div class="d-flex align-items-center mb-4">
             <button class="btn btn-sm btn-outline-secondary d-lg-none me-2" id="sidebar-toggle">
@@ -16,140 +133,195 @@
                 <p class="text-muted mb-0">Fill in the details to book your transportation</p>
             </div>
         </div>
-        
+
         <div class="row g-4">
-            <!-- Booking Form -->
+            <!-- ── Booking Form ───────────────────────── -->
             <div class="col-lg-8">
                 <div class="glass-card">
-                    <form method="post" enctype="multipart/form-data" id="booking-form">
+                    <form method="post" enctype="multipart/form-data" id="booking-form" novalidate>
                         {% csrf_token %}
-                        
+
                         <!-- Step 1: Locations -->
                         <div class="mb-4">
-                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-map-marker-alt me-2"></i>Pickup & Drop Locations</h6>
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-map-marker-alt me-2"></i>Pickup & Drop Locations
+                            </h6>
                             <div class="row g-3">
+
+                                <!-- Pickup Address -->
                                 <div class="col-md-8">
                                     <label class="form-label">Pickup Address *</label>
-                                    {{ form.pickup_location }}
+                                    <div class="ac-wrapper">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">
+                                                <i class="fas fa-map-pin text-success"></i>
+                                            </span>
+                                            {{ form.pickup_location }}
+                                        </div>
+                                        <div class="autocomplete-dropdown" id="pickup-dropdown" style="display:none;"></div>
+                                    </div>
                                 </div>
+
+                                <!-- Pickup City -->
                                 <div class="col-md-4">
                                     <label class="form-label">Pickup City *</label>
                                     {{ form.pickup_city }}
                                 </div>
+
+                                <!-- Drop Address -->
                                 <div class="col-md-8">
                                     <label class="form-label">Drop Address *</label>
-                                    {{ form.drop_location }}
+                                    <div class="ac-wrapper">
+                                        <div class="input-group">
+                                            <span class="input-group-text bg-white">
+                                                <i class="fas fa-map-marker-alt text-danger"></i>
+                                            </span>
+                                            {{ form.drop_location }}
+                                        </div>
+                                        <div class="autocomplete-dropdown" id="drop-dropdown" style="display:none;"></div>
+                                    </div>
                                 </div>
+
+                                <!-- Drop City -->
                                 <div class="col-md-4">
                                     <label class="form-label">Drop City *</label>
                                     {{ form.drop_city }}
                                 </div>
-                                <div class="col-md-6">
-                                    <label class="form-label">Distance (KM) *</label>
-                                    {{ form.distance_km }}
-                                    <small class="text-muted">Approximate distance between locations</small>
+
+                                <!-- Map -->
+                                <div class="col-12">
+                                    <div id="map-container">
+                                        <div id="map"></div>
+                                    </div>
+                                    <small class="text-muted mt-1 d-block">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Type an address and select from suggestions. Map and distance update automatically.
+                                    </small>
                                 </div>
+
+                                <!-- Distance -->
+                                <div class="col-md-6">
+                                    <label class="form-label d-flex align-items-center gap-2">
+                                        Distance (KM) *
+                                        <span class="badge bg-success" id="distance-badge">
+                                            <i class="fas fa-route me-1"></i>Auto-calculated
+                                        </span>
+                                    </label>
+                                    {{ form.distance_km }}
+                                    <small class="text-muted">Auto-filled from map, or enter manually</small>
+                                </div>
+
+                                <!-- Booking Date -->
                                 <div class="col-md-6">
                                     <label class="form-label">Booking Date *</label>
                                     {{ form.booking_date }}
                                 </div>
                             </div>
                         </div>
-                        
+
                         <!-- Step 2: Vehicle Selection -->
                         <div class="mb-4">
-                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-truck me-2"></i>Select Vehicle Type</h6>
-                            <div class="row g-3 mb-3">
-                                <div class="col-4 col-md-2">
-                                    <div class="vehicle-card p-2 text-center" data-vehicle="bike">
-                                        <div style="font-size:2rem;">🏍️</div>
-                                        <small class="fw-semibold">Bike</small>
-                                        <div class="text-gradient small">₹50+</div>
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-truck me-2"></i>Select Vehicle Type *
+                            </h6>
+                            <div class="row g-2 mb-2" id="vehicle-cards">
+                                <div class="col-4 col-sm-4 col-md-2">
+                                    <div class="vehicle-option" data-vehicle="bike">
+                                        <div class="vehicle-emoji">🏍️</div>
+                                        <span class="vehicle-name">Bike</span>
+                                        <span class="vehicle-price">₹50+</span>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-2">
-                                    <div class="vehicle-card p-2 text-center" data-vehicle="mini_truck">
-                                        <div style="font-size:2rem;">🚐</div>
-                                        <small class="fw-semibold">Mini Truck</small>
-                                        <div class="text-gradient small">₹200+</div>
+                                <div class="col-4 col-sm-4 col-md-2">
+                                    <div class="vehicle-option" data-vehicle="mini_truck">
+                                        <div class="vehicle-emoji">🚐</div>
+                                        <span class="vehicle-name">Mini Truck</span>
+                                        <span class="vehicle-price">₹200+</span>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-2">
-                                    <div class="vehicle-card p-2 text-center" data-vehicle="pickup_van">
-                                        <div style="font-size:2rem;">🚛</div>
-                                        <small class="fw-semibold">Pickup Van</small>
-                                        <div class="text-gradient small">₹300+</div>
+                                <div class="col-4 col-sm-4 col-md-2">
+                                    <div class="vehicle-option" data-vehicle="pickup_van">
+                                        <div class="vehicle-emoji">🚛</div>
+                                        <span class="vehicle-name">Pickup Van</span>
+                                        <span class="vehicle-price">₹300+</span>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-2">
-                                    <div class="vehicle-card p-2 text-center" data-vehicle="tempo">
-                                        <div style="font-size:2rem;">🚚</div>
-                                        <small class="fw-semibold">Tempo</small>
-                                        <div class="text-gradient small">₹400+</div>
+                                <div class="col-4 col-sm-4 col-md-2">
+                                    <div class="vehicle-option" data-vehicle="tempo">
+                                        <div class="vehicle-emoji">🚚</div>
+                                        <span class="vehicle-name">Tempo</span>
+                                        <span class="vehicle-price">₹400+</span>
                                     </div>
                                 </div>
-                                <div class="col-4 col-md-2">
-                                    <div class="vehicle-card p-2 text-center" data-vehicle="large_truck">
-                                        <div style="font-size:2rem;">🏗️</div>
-                                        <small class="fw-semibold">Large Truck</small>
-                                        <div class="text-gradient small">₹600+</div>
+                                <div class="col-4 col-sm-4 col-md-2">
+                                    <div class="vehicle-option" data-vehicle="large_truck">
+                                        <div class="vehicle-emoji">🏗️</div>
+                                        <span class="vehicle-name">Large Truck</span>
+                                        <span class="vehicle-price">₹600+</span>
                                     </div>
                                 </div>
                             </div>
+                            <div id="vehicle-error">
+                                <i class="fas fa-exclamation-circle me-1"></i>Please select a vehicle type.
+                            </div>
                             <div style="display:none;">{{ form.vehicle_type }}</div>
                         </div>
-                        
+
                         <!-- Step 3: Item Details -->
                         <div class="mb-4">
-                            <h6 class="fw-bold text-primary mb-3"><i class="fas fa-box me-2"></i>Item Details</h6>
+                            <h6 class="fw-bold text-primary mb-3">
+                                <i class="fas fa-box me-2"></i>Item Details
+                            </h6>
                             <div class="row g-3">
                                 <div class="col-12">
                                     <label class="form-label">Item Description *</label>
                                     {{ form.item_description }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Item Photo (Optional)</label>
+                                    <label class="form-label">Item Photo <span class="text-muted fw-normal">(Optional)</span></label>
                                     {{ form.item_image }}
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="form-label">Special Instructions</label>
+                                    <label class="form-label">Special Instructions <span class="text-muted fw-normal">(Optional)</span></label>
                                     {{ form.special_instructions }}
                                 </div>
                             </div>
                         </div>
-                        
-                        <button type="submit" class="btn btn-gradient btn-lg w-100">
+
+                        <button type="submit" class="btn btn-gradient btn-lg w-100" id="submit-btn">
                             <i class="fas fa-check-circle me-2"></i>Confirm Booking
                         </button>
                     </form>
                 </div>
             </div>
-            
-            <!-- Price Estimator -->
+
+            <!-- ── Price Estimator ───────────────────── -->
             <div class="col-lg-4">
                 <div class="glass-card sticky-top" style="top: 20px;">
-                    <h6 class="fw-bold mb-4"><i class="fas fa-calculator me-2 text-primary"></i>Price Estimator</h6>
-                    
-                    <div class="text-center py-4">
-                        <div class="text-muted mb-2">Estimated Price</div>
+                    <h6 class="fw-bold mb-4">
+                        <i class="fas fa-calculator me-2 text-primary"></i>Price Estimator
+                    </h6>
+
+                    <div class="text-center py-3">
+                        <div class="text-muted mb-1 small">Estimated Price</div>
                         <div class="display-5 fw-bold text-gradient" id="price-display">₹0</div>
                         <small class="text-muted">*Final price may vary</small>
                     </div>
-                    
+
                     <hr>
-                    
+
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Base Price</span>
-                            <span id="base-price">₹0</span>
+                            <span class="text-muted small">Base Price</span>
+                            <span id="base-price" class="fw-semibold">₹0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Distance Charge</span>
-                            <span id="distance-charge">₹0</span>
+                            <span class="text-muted small">Distance Charge</span>
+                            <span id="distance-charge" class="fw-semibold">₹0</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
-                            <span class="text-muted">Handling Fee</span>
-                            <span id="handling-fee">₹0</span>
+                            <span class="text-muted small">Handling Fee</span>
+                            <span id="handling-fee" class="fw-semibold">₹0</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between fw-bold">
@@ -157,12 +329,17 @@
                             <span class="text-gradient" id="total-price">₹0</span>
                         </div>
                     </div>
-                    
+
+                    <div id="selected-vehicle-info" class="alert alert-primary rounded-3 small d-none">
+                        <i class="fas fa-truck me-2"></i>
+                        <span id="selected-vehicle-label"></span>
+                    </div>
+
                     <div class="alert alert-info rounded-3 small">
                         <i class="fas fa-info-circle me-2"></i>
                         Price is calculated based on vehicle type, distance, and handling charges.
                     </div>
-                    
+
                     <div class="mt-3">
                         <h6 class="fw-bold mb-3">Why Choose Us?</h6>
                         <div class="d-flex align-items-center mb-2">
@@ -183,38 +360,298 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
-// Enhanced price calculator with breakdown
-const vehicleSelect = document.getElementById('id_vehicle_type');
-const distanceInput = document.getElementById('id_distance_km');
+// ═══════════════════════════════════════════════════════════
+//  PRICE CALCULATOR
+// ═══════════════════════════════════════════════════════════
+const basePrices   = { bike:50, mini_truck:200, pickup_van:300, tempo:400, large_truck:600 };
+const perKmRates   = { bike:8,  mini_truck:15,  pickup_van:18,  tempo:22,  large_truck:30  };
+const vehicleNames = { bike:'Bike Delivery', mini_truck:'Mini Truck', pickup_van:'Pickup Van', tempo:'Tempo', large_truck:'Large Truck' };
 
-const basePrices = {
-    'bike': 50, 'mini_truck': 200, 'pickup_van': 300, 'tempo': 400, 'large_truck': 600
-};
-const perKmRates = {
-    'bike': 8, 'mini_truck': 15, 'pickup_van': 18, 'tempo': 22, 'large_truck': 30
-};
+let selectedVehicle = '';
 
 function updatePriceBreakdown() {
-    const vehicle = vehicleSelect ? vehicleSelect.value : '';
-    const distance = parseFloat(distanceInput ? distanceInput.value : 0) || 0;
-    
-    if (!vehicle) return;
-    
-    const base = basePrices[vehicle] || 0;
-    const distCharge = distance * (perKmRates[vehicle] || 15);
-    const handling = base * 0.1;
-    const total = base + distCharge + handling;
-    
-    document.getElementById('base-price').textContent = '₹' + base.toFixed(0);
+    const distance = parseFloat(document.getElementById('id_distance_km').value) || 0;
+
+    if (!selectedVehicle) {
+        ['base-price','distance-charge','handling-fee','total-price','price-display']
+            .forEach(id => document.getElementById(id).textContent = '₹0');
+        return;
+    }
+
+    const base       = basePrices[selectedVehicle] || 0;
+    const distCharge = distance * (perKmRates[selectedVehicle] || 15);
+    const handling   = base * 0.1;
+    const total      = base + distCharge + handling;
+
+    document.getElementById('base-price').textContent      = '₹' + base.toFixed(0);
     document.getElementById('distance-charge').textContent = '₹' + distCharge.toFixed(0);
-    document.getElementById('handling-fee').textContent = '₹' + handling.toFixed(0);
-    document.getElementById('total-price').textContent = '₹' + total.toFixed(0);
-    document.getElementById('price-display').textContent = '₹' + total.toFixed(0);
+    document.getElementById('handling-fee').textContent    = '₹' + handling.toFixed(0);
+    document.getElementById('total-price').textContent     = '₹' + total.toFixed(0);
+    document.getElementById('price-display').textContent   = '₹' + total.toFixed(0);
 }
 
-if (vehicleSelect) vehicleSelect.addEventListener('change', updatePriceBreakdown);
-if (distanceInput) distanceInput.addEventListener('input', updatePriceBreakdown);
+document.getElementById('id_distance_km').addEventListener('input', updatePriceBreakdown);
+
+
+// ═══════════════════════════════════════════════════════════
+//  VEHICLE CARD SELECTION
+// ═══════════════════════════════════════════════════════════
+document.querySelectorAll('.vehicle-option').forEach(function(card) {
+    card.addEventListener('click', function() {
+        document.querySelectorAll('.vehicle-option').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedVehicle = card.getAttribute('data-vehicle');
+
+        const sel = document.getElementById('id_vehicle_type');
+        if (sel) sel.value = selectedVehicle;
+
+        const info  = document.getElementById('selected-vehicle-info');
+        const label = document.getElementById('selected-vehicle-label');
+        if (info && label) {
+            label.textContent = vehicleNames[selectedVehicle] || selectedVehicle;
+            info.classList.remove('d-none');
+        }
+
+        document.getElementById('vehicle-error').style.display = 'none';
+        updatePriceBreakdown();
+    });
+});
+
+
+// ═══════════════════════════════════════════════════════════
+//  FORM SUBMIT VALIDATION
+// ═══════════════════════════════════════════════════════════
+document.getElementById('booking-form').addEventListener('submit', function(e) {
+    if (!selectedVehicle) {
+        e.preventDefault();
+        document.getElementById('vehicle-error').style.display = 'block';
+        document.getElementById('vehicle-cards').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+});
+
+
+// ═══════════════════════════════════════════════════════════
+//  LEAFLET MAP  (OpenStreetMap tiles — no API key needed)
+// ═══════════════════════════════════════════════════════════
+const map = L.map('map', { zoomControl: true }).setView([20.5937, 78.9629], 5);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19
+}).addTo(map);
+
+// Custom marker icons
+const greenIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+});
+const redIcon = L.icon({
+    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+    iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41]
+});
+
+let pickupMarker = null, dropMarker = null, routeLayer = null;
+let pickupCoords = null, dropCoords = null;
+
+
+// ── Nominatim Geocoding (OpenStreetMap) ──────────────────
+let nominatimTimer = null;
+
+function searchNominatim(query, callback) {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=6&countrycodes=in`;
+    fetch(url, { headers: { 'Accept-Language': 'en' } })
+        .then(r => r.json())
+        .then(data => callback(data))
+        .catch(() => callback([]));
+}
+
+function extractCity(address) {
+    // Nominatim address object — pick most specific city-level field
+    return address.city || address.town || address.village ||
+           address.county || address.state_district || address.state || '';
+}
+
+function renderDropdown(dropdownEl, results, onSelect) {
+    dropdownEl.innerHTML = '';
+    if (!results.length) {
+        dropdownEl.innerHTML = '<div class="autocomplete-loading">No results found</div>';
+        dropdownEl.style.display = 'block';
+        return;
+    }
+    results.forEach(function(item) {
+        const parts = item.display_name.split(', ');
+        const main  = parts[0];
+        const sub   = parts.slice(1, 4).join(', ');
+
+        const div = document.createElement('div');
+        div.className = 'autocomplete-item';
+        div.innerHTML = `<i class="fas fa-map-marker-alt"></i>
+                         <div><div class="ac-main">${main}</div>
+                         <div class="ac-sub">${sub}</div></div>`;
+        div.addEventListener('mousedown', function(e) {
+            e.preventDefault(); // prevent input blur before click fires
+            onSelect(item);
+            dropdownEl.style.display = 'none';
+        });
+        dropdownEl.appendChild(div);
+    });
+    dropdownEl.style.display = 'block';
+}
+
+function setupAutocomplete(inputId, dropdownId, cityInputId, markerRef, coordsRef, onPlaced) {
+    const input    = document.getElementById(inputId);
+    const dropdown = document.getElementById(dropdownId);
+
+    input.addEventListener('input', function() {
+        const q = input.value.trim();
+        if (q.length < 3) { dropdown.style.display = 'none'; return; }
+
+        dropdown.innerHTML = '<div class="autocomplete-loading"><i class="fas fa-spinner fa-spin me-1"></i>Searching...</div>';
+        dropdown.style.display = 'block';
+
+        clearTimeout(nominatimTimer);
+        nominatimTimer = setTimeout(function() {
+            searchNominatim(q, function(results) {
+                renderDropdown(dropdown, results, function(item) {
+                    // Fill address input
+                    input.value = item.display_name.split(', ').slice(0, 3).join(', ');
+
+                    // Fill city
+                    const city = extractCity(item.address);
+                    if (city) document.getElementById(cityInputId).value = city;
+
+                    // Store coords
+                    const lat = parseFloat(item.lat);
+                    const lon = parseFloat(item.lon);
+                    onPlaced(lat, lon);
+                });
+            });
+        }, 400); // debounce 400ms — respects Nominatim usage policy
+    });
+
+    input.addEventListener('blur', function() {
+        setTimeout(() => { dropdown.style.display = 'none'; }, 150);
+    });
+
+    input.addEventListener('focus', function() {
+        if (dropdown.children.length > 0) dropdown.style.display = 'block';
+    });
+}
+
+// Setup pickup autocomplete
+setupAutocomplete(
+    'id_pickup_location', 'pickup-dropdown', 'id_pickup_city',
+    pickupMarker, pickupCoords,
+    function(lat, lon) {
+        pickupCoords = [lat, lon];
+
+        if (pickupMarker) map.removeLayer(pickupMarker);
+        pickupMarker = L.marker([lat, lon], { icon: greenIcon })
+            .addTo(map)
+            .bindPopup('<b>📦 Pickup</b>').openPopup();
+
+        updateMapView();
+        fetchRoute();
+    }
+);
+
+// Setup drop autocomplete
+setupAutocomplete(
+    'id_drop_location', 'drop-dropdown', 'id_drop_city',
+    dropMarker, dropCoords,
+    function(lat, lon) {
+        dropCoords = [lat, lon];
+
+        if (dropMarker) map.removeLayer(dropMarker);
+        dropMarker = L.marker([lat, lon], { icon: redIcon })
+            .addTo(map)
+            .bindPopup('<b>🏁 Drop</b>').openPopup();
+
+        updateMapView();
+        fetchRoute();
+    }
+);
+
+
+// ── Fit map to both markers ───────────────────────────────
+function updateMapView() {
+    if (pickupCoords && dropCoords) {
+        map.fitBounds([pickupCoords, dropCoords], { padding: [50, 50] });
+    } else if (pickupCoords) {
+        map.setView(pickupCoords, 13);
+    } else if (dropCoords) {
+        map.setView(dropCoords, 13);
+    }
+}
+
+
+// ── OSRM Routing (free, no key) ───────────────────────────
+function fetchRoute() {
+    if (!pickupCoords || !dropCoords) return;
+
+    // Remove old route
+    if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+
+    const url = `https://router.project-osrm.org/route/v1/driving/` +
+                `${pickupCoords[1]},${pickupCoords[0]};${dropCoords[1]},${dropCoords[0]}` +
+                `?overview=full&geometries=geojson`;
+
+    fetch(url)
+        .then(r => r.json())
+        .then(function(data) {
+            if (data.code !== 'Ok' || !data.routes.length) return;
+
+            const route = data.routes[0];
+
+            // Draw route polyline
+            routeLayer = L.geoJSON(route.geometry, {
+                style: {
+                    color: '#6366f1',
+                    weight: 5,
+                    opacity: 0.85,
+                    lineJoin: 'round'
+                }
+            }).addTo(map);
+
+            // Auto-fill distance (OSRM returns metres)
+            const km = (route.distance / 1000).toFixed(1);
+            document.getElementById('id_distance_km').value = km;
+            document.getElementById('distance-badge').style.display = 'inline-flex';
+            updatePriceBreakdown();
+
+            // Fit to route bounds
+            map.fitBounds(routeLayer.getBounds(), { padding: [50, 50] });
+        })
+        .catch(function() {
+            // Fallback: straight-line (haversine) distance
+            const distKm = haversine(pickupCoords, dropCoords).toFixed(1);
+            document.getElementById('id_distance_km').value = distKm;
+            document.getElementById('distance-badge').style.display = 'inline-flex';
+            updatePriceBreakdown();
+        });
+}
+
+
+// ── Haversine fallback ────────────────────────────────────
+function haversine(coord1, coord2) {
+    const R = 6371;
+    const dLat = toRad(coord2[0] - coord1[0]);
+    const dLon = toRad(coord2[1] - coord1[1]);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(toRad(coord1[0])) * Math.cos(toRad(coord2[0])) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function toRad(deg) { return deg * Math.PI / 180; }
+
 </script>
 {% endblock %}

@@ -124,22 +124,36 @@
                     </div>
                     <div class="text-end">
                         <div class="fw-bold text-success">₹{{ job.estimated_price }}</div>
-                        <form method="post" action="{% url 'update_booking_status' job.id %}" class="mt-2">
-                            {% csrf_token %}
+                        <div class="mt-2">
                             {% if job.status == 'confirmed' %}
-                            <button type="submit" name="status" value="picked_up" class="btn btn-sm btn-warning">
+                            <button type="button"
+                                class="btn btn-sm btn-warning status-btn"
+                                data-job-id="{{ job.id }}"
+                                data-new-status="picked_up"
+                                data-label="Mark as Picked Up"
+                                data-icon="fas fa-box">
                                 <i class="fas fa-box me-1"></i>Mark Picked Up
                             </button>
                             {% elif job.status == 'picked_up' %}
-                            <button type="submit" name="status" value="in_transit" class="btn btn-sm btn-info">
+                            <button type="button"
+                                class="btn btn-sm btn-info status-btn"
+                                data-job-id="{{ job.id }}"
+                                data-new-status="in_transit"
+                                data-label="Mark as In Transit"
+                                data-icon="fas fa-truck">
                                 <i class="fas fa-truck me-1"></i>In Transit
                             </button>
                             {% elif job.status == 'in_transit' %}
-                            <button type="submit" name="status" value="delivered" class="btn btn-sm btn-success">
+                            <button type="button"
+                                class="btn btn-sm btn-success status-btn"
+                                data-job-id="{{ job.id }}"
+                                data-new-status="delivered"
+                                data-label="Mark as Delivered"
+                                data-icon="fas fa-check-circle">
                                 <i class="fas fa-check me-1"></i>Delivered
                             </button>
                             {% endif %}
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -148,4 +162,59 @@
         {% endif %}
     </div>
 </div>
+
+<!-- ── Confirmation Modal ──────────────────────────────────── -->
+<div class="modal fade" id="statusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="border-radius:20px; border:none; overflow:hidden;">
+            <div class="modal-header border-0 pb-0" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <h5 class="modal-title text-white fw-bold">
+                    <i id="modal-icon" class="me-2"></i>
+                    <span id="modal-title-text">Update Status</span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-4 pb-2 px-4">
+                <p class="mb-1" id="modal-message">Are you sure you want to update this job status?</p>
+                <p class="text-muted small mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer border-0 pt-2">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="status-form" method="post" action="" class="d-inline">
+                    {% csrf_token %}
+                    <input type="hidden" name="status" id="status-input" value="">
+                    <button type="submit" class="btn btn-gradient rounded-pill px-4">
+                        <i id="modal-confirm-icon" class="me-2"></i>Confirm
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.status-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const jobId     = btn.getAttribute('data-job-id');
+        const newStatus = btn.getAttribute('data-new-status');
+        const label     = btn.getAttribute('data-label');
+        const icon      = btn.getAttribute('data-icon');
+
+        const descriptions = {
+            'picked_up':  'Confirm that you have physically picked up the items for Job #' + jobId + '.',
+            'in_transit': 'Confirm that Job #' + jobId + ' is now in transit to the drop location.',
+            'delivered':  'Confirm that Job #' + jobId + ' has been successfully delivered. This will update your earnings.'
+        };
+
+        document.getElementById('modal-title-text').textContent = label;
+        document.getElementById('modal-icon').className         = icon + ' me-2';
+        document.getElementById('modal-confirm-icon').className = icon + ' me-2';
+        document.getElementById('modal-message').textContent    = descriptions[newStatus] || 'Update job status?';
+        document.getElementById('status-form').action = '/driver/jobs/' + jobId + '/update/';
+        document.getElementById('status-input').value = newStatus;
+
+        new bootstrap.Modal(document.getElementById('statusModal')).show();
+    });
+});
+</script>
 {% endblock %}
