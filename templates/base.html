@@ -37,6 +37,23 @@
             animation: pulse 1s ease infinite;
         }
     </style>
+    <script>
+        // Guarantee loader is hidden even if main.js fails to load
+        (function() {
+            function hideLoader() {
+                var loader = document.getElementById('page-loader');
+                if (loader) {
+                    loader.style.opacity = '0';
+                    setTimeout(function() { loader.remove(); }, 500);
+                }
+            }
+            window.addEventListener('load', function() {
+                setTimeout(hideLoader, 800);
+            });
+            // Hard fallback: hide after 3 seconds no matter what
+            setTimeout(hideLoader, 3000);
+        })();
+    </script>
 </head>
 <body>
 

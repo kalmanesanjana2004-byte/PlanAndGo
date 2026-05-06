@@ -226,11 +226,21 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 // FORM VALIDATION FEEDBACK
 // ─────────────────────────────────────────────
 document.querySelectorAll('form').forEach(form => {
+    const btn = form.querySelector('[type="submit"]');
+    if (!btn) return;
+
+    const originalLabel = btn.innerHTML;
+
     form.addEventListener('submit', function (e) {
-        const btn = form.querySelector('[type="submit"]');
-        if (btn && form.checkValidity()) {
+        if (form.checkValidity()) {
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processing...';
             btn.disabled = true;
+
+            // Re-enable after 10s as a safety fallback (e.g. server error)
+            setTimeout(() => {
+                btn.innerHTML = originalLabel;
+                btn.disabled = false;
+            }, 10000);
         }
     });
 });
